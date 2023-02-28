@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="93615ec7-b0d2-4dfd-a4c5-9d44045a5fd1" name="Changes" comment="" />
+    <list default="true" id="93615ec7-b0d2-4dfd-a4c5-9d44045a5fd1" name="Changes" comment="cleanup" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -9,6 +9,9 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectId" id="2MNNz3N8ResyMulWPqZSKbXpFYQ" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -32,8 +35,16 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1677604338394</updated>
-      <workItem from="1677604339558" duration="7000" />
+      <workItem from="1677604339558" duration="302000" />
     </task>
+    <task id="LOCAL-00001" summary="cleanup">
+      <created>1677604413179</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1677604413179</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -54,5 +65,7 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
+    <MESSAGE value="cleanup" />
+    <option name="LAST_COMMIT_MESSAGE" value="cleanup" />
   </component>
 </project>
