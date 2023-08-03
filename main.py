@@ -1,4 +1,4 @@
-import requests, re, getpass
+import requests, re, getpass, os
 import pandas as pd
 from bs4 import BeautifulSoup as bs
 from tqdm import tqdm
@@ -11,6 +11,57 @@ class LoginError(Exception):
 session = requests.Session()
 domain='https://clip.fct.unl.pt'
 
+class ClipFile: # File in clip
+
+    def __init__(self, row: pd.Series):
+        self.name = row.at["Nome"]
+        self.link = row.at["Link"]
+        self.date = row.at["Data"]
+        self.size = row.at["Tamanho"]
+        self.teacher = row.at["Docente"]
+    
+    def exists(self,path: str) -> bool:
+        return os.path.isfile(path+self.name)
+
+class DTable: # Downloads table
+    
+    def __new__(self, html: bs) -> [ClipFile]:
+        self.html = html
+        self.files = []
+        table = self.get_downloads_table(self)
+        for row in table.index:
+            file = ClipFile(table.iloc[row])
+            self.files.append(file)
+
+        return self.files
+    
+    def human_read_to_byte(size: str):
+        size_name = ("B", "Kb", "Mb", "Gb", "Tb")
+        # divide '1 GB' into ['1', 'GB']
+        num, unit = int(size[:-2]), size[-2:]
+        idx = size_name.index(unit)        # index in list of sizes determines power to raise it to
+        factor = 1024 ** idx               # ** is the "exponent" operator - you can use it instead of math.pow()
+        num += 1 # Hack to get the right size since the size in the html table actually rounds it wrong
+        return num * factor
+
+    def get_downloads_table(self):
+        df = pd.DataFrame(columns=['Nome','Link','Data','Tamanho','Docente'])
+        table=self.html.find_all("form")[1].find("table") # get downloads table TODO parse file size
+        for row in table.find_all("tr", {'bgcolor':True}):
+            columns = row.find_all("td")
+
+            if columns != []:
+                nome = columns[0].text.strip()
+                link = domain + columns[1].find("a").get("href")
+                data = columns[2].text.strip()
+                tamanho = self.human_read_to_byte(columns[3].text.strip())
+                docente = columns[4].text.strip()
+
+                row = pd.DataFrame({"Nome": [nome], "Link": [link], "Data": [data], "Tamanho": [tamanho], "Docente": [docente]})
+
+                df = pd.concat([df, row], ignore_index=True)
+        
+        return df
 
 def getLogin():
     username = input("Username: ")
@@ -65,25 +116,6 @@ def download_to_file(filepath: str, url: str, file_length=0):
         print(f'[-] Failed to download \'{url}\'! {str(ex)}')
         pass
 
-def get_downloads_table(html):
-    df = pd.DataFrame(columns=['Nome','Link','Data','Tamanho','Docente'])
-    table=html.find_all("form")[1].find("table") # get downloads table TODO parse file size
-    for row in table.find_all("tr", {'bgcolor':True}):
-        columns = row.find_all("td")
-
-        if columns != []:
-            nome = columns[0].text.strip()
-            link = domain + columns[1].find("a").get("href")
-            data = columns[2].text.strip()
-            tamanho = columns[3].text.strip()
-            docente = columns[4].text.strip()
-
-            row = pd.DataFrame({"Nome": [nome], "Link": [link], "Data": [data], "Tamanho": [tamanho], "Docente": [docente]})
-
-            df = pd.concat([df, row], ignore_index=True)
-    
-    return df
-
 def main():
     valid_login = False
     while not valid_login:
@@ -99,11 +131,12 @@ def main():
     soup = bs(get_html(url), 'html.parser')
 
     # Get downloads table
-    table = get_downloads_table(soup)
+    table = DTable(soup)
 
-    print(table.head(10))
-    print(table.at[0,"Link"])
-    print(table.loc[0].at["Link"])
+    path="/tmp/"
+
+    for file in table:
+        print(f"{file.name} {file.exists(path)}")
 
     """
     # Get all download links
