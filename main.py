@@ -1,4 +1,5 @@
 import requests, re, getpass, os
+from datetime import datetime
 import pandas as pd
 from bs4 import BeautifulSoup as bs
 from tqdm import tqdm
@@ -16,10 +17,13 @@ class ClipFile: # File in clip
     def __init__(self, row: pd.Series):
         self.name = row.at["Nome"]
         self.link = row.at["Link"]
-        self.date = row.at["Data"]
+        self.date = datetime.fromisoformat(row.at["Data"])
         self.size = row.at["Tamanho"]
         self.teacher = row.at["Docente"]
     
+    def __str__(self):
+        return f"{self.name} {self.link} {self.date} {self.size} {self.teacher}"
+
     def exists(self,path: str) -> bool:
         return os.path.isfile(path+self.name)
 
@@ -35,7 +39,7 @@ class DTable: # Downloads table
 
         return self.files
     
-    def human_read_to_byte(size: str):
+    def convert_str_to_byte(size: str):
         size_name = ("B", "Kb", "Mb", "Gb", "Tb")
         # divide '1 GB' into ['1', 'GB']
         num, unit = int(size[:-2]), size[-2:]
@@ -54,7 +58,7 @@ class DTable: # Downloads table
                 nome = columns[0].text.strip()
                 link = domain + columns[1].find("a").get("href")
                 data = columns[2].text.strip()
-                tamanho = self.human_read_to_byte(columns[3].text.strip())
+                tamanho = self.convert_str_to_byte(columns[3].text.strip())
                 docente = columns[4].text.strip()
 
                 row = pd.DataFrame({"Nome": [nome], "Link": [link], "Data": [data], "Tamanho": [tamanho], "Docente": [docente]})
@@ -97,15 +101,15 @@ def download(url, size):
             file.write(data)
 """
 
-def download_to_file(filepath: str, url: str, file_length=0):
+def download_to_file(filepath: str, url: str, file_size=0, file_time=0): #TODO refactor function with ClipFile and change file time
     try:
         r = session.get(url, stream=True)
-        if file_length==0: file_length=r.headers['Content-Length']
+        if file_size==0: file_size=r.headers['Content-Length']
         chunk_size = 1024
 
         if r.status_code == 200:
             with open(filepath, 'wb+') as f:
-                pbar = tqdm(total=file_length, unit="B", unit_scale=True, unit_divisor=1024)
+                pbar = tqdm(total=file_size, unit="B", unit_scale=True, unit_divisor=1024)
                 for chunk in r.iter_content(chunk_size=chunk_size):
                     if chunk:
                         pbar.update(len(chunk))
@@ -136,7 +140,7 @@ def main():
     path="/tmp/"
 
     for file in table:
-        print(f"{file.name} {file.exists(path)}")
+        print(f"{file} {file.exists(path)}")
 
     """
     # Get all download links
