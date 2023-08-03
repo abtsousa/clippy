@@ -1,7 +1,5 @@
-import requests
-import re
-import getpass
-import sys
+import requests, re, getpass
+import pandas as pd
 from bs4 import BeautifulSoup as bs
 from tqdm import tqdm
 
@@ -11,6 +9,8 @@ class LoginError(Exception):
         print(message)
 
 session = requests.Session()
+domain='https://clip.fct.unl.pt'
+
 
 def getLogin():
     username = input("Username: ")
@@ -29,8 +29,10 @@ def getLogin():
     except requests.exceptions.RequestException as e:
         raise LoginError("Erro de conexão durante o login.")
 
-
-def get_html(url):
+def get_URL(year: int, semester: int, unit: int, type: str):
+    return f'{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?tipo_de_per%EDodo_lectivo=s&tipo_de_documento_de_unidade={type}&ano_lectivo={year}&per%EDodo_lectivo={semester}&unidade_curricular={unit}'
+    
+def get_html(url: str):
     response = session.get(url)
     response.raise_for_status()  # Raise an exception for HTTP errors
     return response.text
@@ -63,6 +65,25 @@ def download_to_file(filepath: str, url: str, file_length=0):
         print(f'[-] Failed to download \'{url}\'! {str(ex)}')
         pass
 
+def get_downloads_table(html):
+    df = pd.DataFrame(columns=['Nome','Link','Data','Tamanho','Docente'])
+    table=html.find_all("form")[1].find("table") # get downloads table TODO parse file size
+    for row in table.find_all("tr", {'bgcolor':True}):
+        columns = row.find_all("td")
+
+        if columns != []:
+            nome = columns[0].text.strip()
+            link = domain + columns[1].find("a").get("href")
+            data = columns[2].text.strip()
+            tamanho = columns[3].text.strip()
+            docente = columns[4].text.strip()
+
+            row = pd.DataFrame({"Nome": [nome], "Link": [link], "Data": [data], "Tamanho": [tamanho], "Docente": [docente]})
+
+            df = pd.concat([df, row], ignore_index=True)
+    
+    return df
+
 def main():
     valid_login = False
     while not valid_login:
@@ -73,25 +94,31 @@ def main():
             continue
 
     # Create url link for the class
-    ano_lectivo=2023
-    semestre=1
-    unidade_curricular=11504
-    tipo_documento='t'
-    domain='https://clip.fct.unl.pt'
+    url = get_URL(2023,1,11504,"t")
 
-    url = f'{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?tipo_de_per%EDodo_lectivo=s&tipo_de_documento_de_unidade={tipo_documento}&ano_lectivo={ano_lectivo}&per%EDodo_lectivo={semestre}&unidade_curricular={unidade_curricular}'
     soup = bs(get_html(url), 'html.parser')
 
+    # Get downloads table
+    table = get_downloads_table(soup)
+
+    print(table.head(10))
+    print(table.at[0,"Link"])
+    print(table.loc[0].at["Link"])
+
+    """
     # Get all download links
     links = []
     for link in soup.find_all('a', href=re.compile("^/objecto*")):
         links.append(domain+link.get('href'))
+    """
+    
+    
+    # print(soup.find("td", class_="barra_de_escolhas"})) # get left sidebar TODO parse number of downloads
 
-    # print(soup.find_all("form")[1].find("table")) # get downloads table TODO parse file size
-    print(soup.find("td", attrs={"class":"barra_de_escolhas"})) # get left sidebar TODO parse number of downloads
-    print(links)
+
+    #print(links)
     #download_to_file("/tmp/","1","http://speedtest.ftp.otenet.gr/files/test10Mb.db")
-    download_to_file("/tmp/1",links[1], (718+1)*1024) # need to add 1
+    #download_to_file("/tmp/1",links[1], (718+1)*1024) # need to add 1
 
 if __name__ == "__main__":
     main()
