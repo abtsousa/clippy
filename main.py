@@ -12,6 +12,17 @@ class LoginError(Exception):
 session = requests.Session()
 domain='https://clip.fct.unl.pt'
 
+type_dict = {
+    "Material Multimédia":"0ac",
+    "Problemas":"1e",
+    "Protocolos":"2tr",
+    "Seminários":"3sm",
+    "Exames":"ex",
+    "Testes":"t",
+    "Textos de Apoio":"ta",
+    "Outros":"xot",
+}
+
 class ClipFile: # File in clip
 
     def __init__(self, row: pd.Series):
@@ -20,6 +31,10 @@ class ClipFile: # File in clip
         self.date = datetime.fromisoformat(row.at["Data"])
         self.size = row.at["Tamanho"]
         self.teacher = row.at["Docente"]
+
+    def __new__(self, *args, **kwargs):
+        return (self.name, self)
+        
     
     def __str__(self):
         return f"{self.name} {self.link} {self.date} {self.size} {self.teacher}"
