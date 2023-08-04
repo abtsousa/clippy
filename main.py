@@ -122,7 +122,7 @@ class LinkCount(dict):
         return type_dict[key]
 
 
-def getLogin(username=None,password=None,count=0):
+def get_login(username=None,password=None,count=0):
     if username is None: username= input("Nome de utilizador: ")
     if password is None: password = getpass.getpass()
 
@@ -140,14 +140,14 @@ def getLogin(username=None,password=None,count=0):
         count += 1
         if count > 3: raise LoginError("Demasiadas tentativas de conexão. Tente novamente mais tarde.")
         log.warning(f"Ligação ao servidor excedeu o tempo, a tentar novamente... ({count}/3)")
-        getLogin(username,password, count)
+        get_login(username,password, count)
     except requests.exceptions.RequestException as e:
         raise LoginError(f"Erro de conexão durante o login: {e}")
 
 def get_URL(year: int, semester: int, unit: int, type: str=None):
-    if type is None:
+    if type is None: #URL for link counter parser
         return f"{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?edi%E7%E3o_de_unidade_curricular={unit},97747,{year},s,{semester}"
-    else:
+    else: #URL for download parser
         return f'{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?tipo_de_per%EDodo_lectivo=s&tipo_de_documento_de_unidade={type}&ano_lectivo={year}&per%EDodo_lectivo={semester}&unidade_curricular={unit}'
     
 def get_html(url: str):
@@ -194,7 +194,7 @@ def main():
     valid_login = False
     while not valid_login:
         try:
-            getLogin()
+            get_login()
             valid_login = True
         except LoginError:
             continue
