@@ -102,7 +102,8 @@ class LinkCount(dict):
         links = self.get_links(html)
         counter = [re.search(r"^(\D+) \((\d+)\)",match.text.strip()).group(1,2) for match in links]
         for key, value in counter:
-            self[key] = int(value)
+            if int(value) != 0: #ignore links with zero files
+                self[key] = int(value)
     
     def get_links(self, html):
         table = html.find_all("td", attrs={"width":"100%"})[1].find_all("a")
@@ -185,9 +186,9 @@ def download_to_file(filepath: str, url: str, file_size=0, file_mtime=None): #TO
                 log.debug("Novo mod-time:", os.stat(filepath).st_mtime)
 
         else:
-            raise requests.HTTPError(f'Status code is {r.status_code}')
+            raise requests.HTTPError(f'Código de estado HTTP: {r.status_code}')
     except Exception as ex:
-        log.error(f'[-] Failed to download \'{url}\'! {str(ex)}')
+        log.error(f'[-] Falhou o download de \'{url}\'! {str(ex)}')
         pass
 
 def main():
@@ -205,9 +206,8 @@ def main():
     soup = bs(get_html(url), 'html.parser')  
     links = LinkCount(soup)
     for link,count in links.items():
-        if count != 0:
-            print(link, count)
-            pass # TODO
+        print(link, count)
+        pass # TODO
 
     """
     # Get downloads table
