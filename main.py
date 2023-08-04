@@ -18,6 +18,8 @@ retry_strategy = Retry(
 adapter = HTTPAdapter(max_retries=retry_strategy)
 
 session = requests.Session()
+session.mount("https://", adapter)
+session.mount("http://", adapter)
 domain='https://clip.fct.unl.pt'
 
 type_dict = {
@@ -90,9 +92,9 @@ class DTable: # Downloads table
         
         return df
 
-def getLogin():
-    username = input("Username: ")
-    password = getpass.getpass()
+def getLogin(username=None,password=None,count=0):
+    if username is None: username= input("Nome de utilizador: ")
+    if password is None: password = getpass.getpass()
 
     login_data = {
         'identificador': username,
