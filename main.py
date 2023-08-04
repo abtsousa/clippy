@@ -1,4 +1,4 @@
-import requests, getpass, os 
+import requests, getpass, os, re
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 from datetime import datetime
@@ -26,17 +26,6 @@ session = requests.Session()
 session.mount("https://", adapter)
 session.mount("http://", adapter)
 domain='https://clip.fct.unl.pt'
-
-type_dict = {
-    "Material Multimédia":"0ac",
-    "Problemas":"1e",
-    "Protocolos":"2tr",
-    "Seminários":"3sm",
-    "Exames":"ex",
-    "Testes":"t",
-    "Textos de Apoio":"ta",
-    "Outros":"xot",
-}
 
 class Folder(str): #subclass of String
     def __new__(cls, path):
@@ -69,15 +58,14 @@ class ClipFile: # File in clip
     
 class DTable: # Downloads table
     
-    def __new__(self, html: bs) -> [ClipFile]:
-        self.html = html
-        self.files = []
-        table = self.get_downloads_table(self)
+    def __new__(cls, html: bs) -> [ClipFile]:
+        files = []
+        table = cls.get_downloads_table(cls,html)
         for row in table.index:
             file = ClipFile(table.iloc[row])
-            self.files.append(file)
+            files.append(file)
 
-        return self.files
+        return files
     
     def convert_str_to_byte(size: str):
         size_name = ("B", "Kb", "Mb", "Gb", "Tb")
@@ -88,9 +76,9 @@ class DTable: # Downloads table
         num += 1 # Hack to get the right size since the size in the html table actually rounds it wrong
         return num * factor
 
-    def get_downloads_table(self):
+    def get_downloads_table(self, html):
         df = pd.DataFrame(columns=['Nome','Link','Data','Tamanho','Docente'])
-        table=self.html.find_all("form")[1].find("table") # get downloads table TODO parse file size
+        table=html.find_all("form")[1].find("table") # get downloads table TODO parse file size
         for row in table.find_all("tr", {'bgcolor':True}):
             columns = row.find_all("td")
 
@@ -106,6 +94,33 @@ class DTable: # Downloads table
                 df = pd.concat([df, row], ignore_index=True)
         
         return df
+
+class LinkCount(dict):
+
+    def __init__(self, html:bs):
+        super().__init__
+        links = self.get_links(html)
+        counter = [re.search(r"^(\D+) \((\d+)\)",match.text.strip()).group(1,2) for match in links]
+        for key, value in counter:
+            self[key] = int(value)
+    
+    def get_links(self, html):
+        table = html.find_all("td", attrs={"width":"100%"})[1].find_all("a")
+        return table
+
+    def get_type(self, key):
+        type_dict = {
+            "Material Multimédia":"0ac",
+            "Problemas":"1e",
+            "Protocolos":"2tr",
+            "Seminários":"3sm",
+            "Exames":"ex",
+            "Testes":"t",
+            "Textos de Apoio":"ta",
+            "Outros":"xot",
+        }
+        return type_dict[key]
+
 
 def getLogin(username=None,password=None,count=0):
     if username is None: username= input("Nome de utilizador: ")
@@ -125,12 +140,15 @@ def getLogin(username=None,password=None,count=0):
         count += 1
         if count > 3: raise LoginError("Demasiadas tentativas de conexão. Tente novamente mais tarde.")
         log.warning(f"Ligação ao servidor excedeu o tempo, a tentar novamente... ({count}/3)")
-        getLogin(username,password)
+        getLogin(username,password, count)
     except requests.exceptions.RequestException as e:
         raise LoginError(f"Erro de conexão durante o login: {e}")
 
-def get_URL(year: int, semester: int, unit: int, type: str):
-    return f'{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?tipo_de_per%EDodo_lectivo=s&tipo_de_documento_de_unidade={type}&ano_lectivo={year}&per%EDodo_lectivo={semester}&unidade_curricular={unit}'
+def get_URL(year: int, semester: int, unit: int, type: str=None):
+    if type is None:
+        return f"{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?edi%E7%E3o_de_unidade_curricular={unit},97747,{year},s,{semester}"
+    else:
+        return f'{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?tipo_de_per%EDodo_lectivo=s&tipo_de_documento_de_unidade={type}&ano_lectivo={year}&per%EDodo_lectivo={semester}&unidade_curricular={unit}'
     
 def get_html(url: str):
     response = session.get(url)
@@ -182,10 +200,16 @@ def main():
             continue
 
     # Create url link for the class
-    url = get_URL(2023,1,11504,"t")
+    url = get_URL(2023,1,11504)
 
-    soup = bs(get_html(url), 'html.parser')
+    soup = bs(get_html(url), 'html.parser')  
+    links = LinkCount(soup)
+    for link,count in links.items():
+        if count != 0:
+            print(link, count)
+            pass # TODO
 
+    """
     # Get downloads table
     table = DTable(soup)
 
@@ -202,20 +226,11 @@ def main():
             case None:
                 print(f"A transferir {file.name}...")
                 download_to_file(os.path.join(path,file.name),file.link,file.size,file.mtime)
-    """
-    # Get all download links
-    links = []
-    for link in soup.find_all('a', href=re.compile("^/objecto*")):
-        links.append(domain+link.get('href'))
-    """
     
     
     # print(soup.find("td", class_="barra_de_escolhas"})) # get left sidebar TODO parse number of downloads
 
-
-    #print(links)
-    #download_to_file("/tmp/","1","http://speedtest.ftp.otenet.gr/files/test10Mb.db")
-    #download_to_file("/tmp/1",links[1], (718+1)*1024) # need to add 1
+    """
 
 if __name__ == "__main__":
     main()
