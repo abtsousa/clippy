@@ -30,10 +30,14 @@ domain='https://clip.fct.unl.pt'
 class Folder(str): #subclass of String
     def __new__(cls, path):
         if not os.path.isdir(path):
-            raise ValueError(f"'{path}' não é uma directoria válida")
+            print(f"A criar a directoria '{path}'...")
+            os.makedirs(path)
         return super().__new__(cls, path)
+    
+    def join(self, path2: str):
+        return Folder(os.path.join(self,path2))
 
-    def join(self, filename: str) -> str:
+    def get_filepath(self, filename: str) -> str:
         fullpath = os.path.join(self, filename)
         if not os.path.isfile(fullpath): raise FileNotFoundError
         return fullpath
@@ -52,11 +56,11 @@ class ClipFile: # File in clip
     
     def is_synced(self,path: Folder): #True = file is synced / False = file exists but is outdated / None: file does not exist
         try:
-            return (datetime.fromtimestamp(os.path.getmtime(path.join(self.name))) >= self.mtime)
+            return (datetime.fromtimestamp(os.path.getmtime(path.get_filepath(self.name))) >= self.mtime)
         except FileNotFoundError:
             return None
     
-class DTable: # Downloads table
+class DTable: # Documents table
     
     def __new__(cls, html: bs) -> [ClipFile]:
         files = []
@@ -95,7 +99,7 @@ class DTable: # Downloads table
         
         return df
 
-class LinkCount(dict):
+class IndexCount(dict): # Documents count
 
     def __init__(self, html:bs):
         super().__init__
@@ -122,8 +126,34 @@ class LinkCount(dict):
         }
         return type_dict[key]
 
+class Unit:
+    def __init__(self, name: str, link: str):
+        self.name = name
+        self.year = re.search(r"ano_lectivo=(\d+)",link).group(1)
+        self.unit = re.search(r"unidade=(\d+)",link).group(1)
+        self.semester_type = re.search(r"tipo_de_per%EDodo_lectivo=(\w)",link).group(1)
+        self.semester = re.search(r"per%EDodo_lectivo=(\d)",link).group(1)
+    
+    def __str__(self):
+        return f"{self.name} {self.unit} {self.year} {self.semester}{self.semester_type.upper()}"
+    
+class UnitsList(list): # List of units and their links
 
-def get_login(username=None,password=None,count=0):
+    def __init__(self, html:bs):
+        super().__init__()
+        links = self.get_links(html)
+        units = [Unit(link.text,link['href']) for link in links]
+        self.extend(units)
+    
+    def __str__(self):
+        return '\n'.join(str(unit) for unit in self)
+    
+    def get_links(self, html):
+        table = html.find_all("td", attrs={"width":"100%"})[1].find_all("a", {"href": re.compile(r"&unidade=(\d+)")}) # TODO possivel IndexError out of range
+        return table
+
+
+def get_login(username=None,password=None,count=0) -> int:
     if username is None: username= input("Nome de utilizador: ")
     if password is None: password = getpass.getpass()
 
@@ -133,10 +163,16 @@ def get_login(username=None,password=None,count=0):
     }
 
     try:
-        response = session.post('https://clip.fct.unl.pt/', data=login_data, timeout=10)
+        response = session.post('https://clip.fct.unl.pt/', data=login_data, timeout=5)
         response.raise_for_status()  # Raise an exception for HTTP errors
         if "Autenticação inválida" in response.text:
             raise LoginError("Autenticação falhou.")
+        
+        # Return user ID
+        id = re.search(r"\/utente\/eu\/aluno\?aluno=(\d+)",response.text).group(1)
+        return int(id)
+
+
     except requests.exceptions.ReadTimeout:
         count += 1
         if count > 3: raise LoginError("Demasiadas tentativas de conexão. Tente novamente mais tarde.")
@@ -145,11 +181,14 @@ def get_login(username=None,password=None,count=0):
     except requests.exceptions.RequestException as e:
         raise LoginError(f"Erro de conexão durante o login: {e}")
 
-def get_URL(year: int, semester: int, unit: int, type: str=None):
-    if type is None: #URL for link counter parser
-        return f"{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?edi%E7%E3o_de_unidade_curricular={unit},97747,{year},s,{semester}"
-    else: #URL for download parser
-        return f'{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?tipo_de_per%EDodo_lectivo=s&tipo_de_documento_de_unidade={type}&ano_lectivo={year}&per%EDodo_lectivo={semester}&unidade_curricular={unit}'
+def get_URL_UnitsList(year: int, user: int):
+    return f"{domain}/utente/eu/aluno/ano_lectivo/unidades?ano_lectivo={year}&institui%E7%E3o=97747&aluno={user}"
+
+def get_URL_Index(year: int, semester_type: str, semester: int, unit: int):
+    return f"{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?edi%E7%E3o_de_unidade_curricular={unit},97747,{year},{semester_type},{semester}"
+
+def get_URL_DList(year: int, semester_type: str, semester: int, unit: int, doc_type: str):
+        return f'{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?tipo_de_per%EDodo_lectivo={semester_type}&tipo_de_documento_de_unidade={doc_type}&ano_lectivo={year}&per%EDodo_lectivo={semester}&unidade_curricular={unit}'
     
 def get_html(url: str):
     response = session.get(url)
@@ -165,6 +204,23 @@ def download(url, size):
             file.write(data)
 """
 
+def parse_index(year: int, semester_type: str, semester: int, unit: int):
+    # Get all the links count
+    # Create url link for the class
+    url = get_URL_Index(year,semester_type, semester,unit)
+    soup = bs(get_html(url), 'html.parser')  
+    return IndexCount(soup)
+
+def parse_docs(year: int, semester_type: str, semester: int, unit: int, doc_type: str):
+    url = get_URL_DList(year,semester_type,semester,unit,doc_type)
+    soup = bs(get_html(url), 'html.parser')  
+    return DTable(soup)
+
+def parse_units(year: int, user: int):
+    url = get_URL_UnitsList(year, user)
+    soup = bs(get_html(url), 'html.parser') #TODO quando o servidor falha a meio dá IndexError out of range
+    return UnitsList(soup)
+
 def download_to_file(filepath: str, url: str, file_size=0, file_mtime=None): #TODO refactor function with ClipFile and change file time
     try:
         r = session.get(url, stream=True)
@@ -179,58 +235,65 @@ def download_to_file(filepath: str, url: str, file_size=0, file_mtime=None): #TO
                         pbar.update(len(chunk))
                         f.write(chunk)
             if file_mtime is not None:
-                log.debug("Mod-time do ficheiro:", os.stat(filepath).st_mtime)
+                log.debug("Mod-time do ficheiro: %d", int(os.stat(filepath).st_mtime))
                 mtime = file_mtime.timestamp()
-                log.debug("A actualizar para", mtime)
+                log.debug("A actualizar para %d", int(mtime))
                 os.utime(filepath,times=(mtime,mtime))
-                log.debug("Novo mod-time:", os.stat(filepath).st_mtime)
+                log.debug("Novo mod-time: %d", int(os.stat(filepath).st_mtime))
 
         else:
             raise requests.HTTPError(f'Código de estado HTTP: {r.status_code}')
     except Exception as ex:
         log.error(f'[-] Falhou o download de \'{url}\'! {str(ex)}')
         pass
+    # print(soup.find("td", class_="barra_de_escolhas"})) # get left sidebar TODO parse number of downloads
+
+def get_file(file: ClipFile, path: Folder):
+    log.debug(f"{file} {file.is_synced(path)}")
+    match file.is_synced(path):
+        case True:
+            log.info(f"Encontrado {file.name} na pasta, a saltar...")
+        case False:
+            print(f"O ficheiro {file.name} está desactualizado, a transferir...")
+            download_to_file(os.path.join(path,file.name),file.link,file.size,file.mtime)
+        case None:
+            print(f"A transferir {file.name}...")
+            download_to_file(os.path.join(path,file.name),file.link,file.size,file.mtime)
 
 def main():
     valid_login = False
     while not valid_login:
         try:
-            get_login()
+            user = get_login()
             valid_login = True
         except LoginError:
             continue
-
-    # Create url link for the class
-    url = get_URL(2023,1,11504)
-
-    soup = bs(get_html(url), 'html.parser')  
-    links = LinkCount(soup)
-    for link,count in links.items():
-        print(link, count)
-        pass # TODO
-
-    """
-    # Get downloads table
-    table = DTable(soup)
-
-    path = Folder("/tmp/clipper/")
-
-    for file in table:
-        log.debug(f"{file} {file.is_synced(path)}")
-        match file.is_synced(path):
-            case True:
-                print(f"Encontrado {file.name} na pasta, a saltar...")
-            case False:
-                print(f"O ficheiro {file.name} está desactualizado, a transferir...")
-                download_to_file(os.path.join(path,file.name),file.link,file.size,file.mtime)
-            case None:
-                print(f"A transferir {file.name}...")
-                download_to_file(os.path.join(path,file.name),file.link,file.size,file.mtime)
     
-    
-    # print(soup.find("td", class_="barra_de_escolhas"})) # get left sidebar TODO parse number of downloads
+    path = Folder(os.getcwd())
+    year = 2023
 
-    """
+    units = parse_units(year,user)
+    print("Encontradas as seguintes unidades: "+" | ".join(unit.name for unit in units) )
+
+    for unit in units:
+        print(f"A procurar documentos de {unit.name}...")
+        full_path = path.join(unit.year)
+
+        index = parse_index(unit.year, unit.semester_type, unit.semester, unit.unit)
+
+        if not index: #skips creating directory if there are no documents
+            log.info(f"Não foram encontrados documentos em {unit.name}")
+        else:
+            full_semester = unit.semester+unit.semester_type.upper()
+            full_path = full_path.join(full_semester).join(unit.name)
+        
+        for category,count in index.items():
+            print(f"> A procurar {category}...")
+            doc_type = index.get_type(category)
+            table = parse_docs(unit.year,unit.semester_type, unit.semester, unit.unit, doc_type)
+            for file in table:
+                folder = full_path.join(category)
+                get_file(file,folder)
 
 if __name__ == "__main__":
     main()
