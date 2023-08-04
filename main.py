@@ -5,9 +5,14 @@ from datetime import datetime
 import pandas as pd
 from bs4 import BeautifulSoup as bs
 from tqdm import tqdm
+import logging as log
+log.basicConfig(format="[%(levelname)s] %(message)s", level=log.WARNING)
 
 class LoginError(Exception):
     "Raised when the login fails"
+    def __init__(self, message="Erro de login"):
+        log.error(message)
+
 retry_strategy = Retry(
     total=3,  # Number of total retries (including the initial request)
     backoff_factor=0.3,  # Factor to apply exponential backoff between retries
@@ -33,25 +38,35 @@ type_dict = {
     "Outros":"xot",
 }
 
+class Folder(str): #subclass of String
+    def __new__(cls, path):
+        if not os.path.isdir(path):
+            raise ValueError(f"'{path}' não é uma directoria válida")
+        return super().__new__(cls, path)
+
+    def join(self, filename: str) -> str:
+        fullpath = os.path.join(self, filename)
+        if not os.path.isfile(fullpath): raise FileNotFoundError
+        return fullpath
+
 class ClipFile: # File in clip
 
     def __init__(self, row: pd.Series):
         self.name = row.at["Nome"]
         self.link = row.at["Link"]
-        self.date = datetime.fromisoformat(row.at["Data"])
+        self.mtime = datetime.strptime(row.at["Data"],"%Y-%m-%d %H:%M")
         self.size = row.at["Tamanho"]
         self.teacher = row.at["Docente"]
-
-    def __new__(self, *args, **kwargs):
-        return (self.name, self)
-        
-    
+  
     def __str__(self):
-        return f"{self.name} {self.link} {self.date} {self.size} {self.teacher}"
-
-    def exists(self,path: str) -> bool:
-        return os.path.isfile(path+self.name)
-
+        return f"{self.name} {self.link} {self.mtime} {self.size} {self.teacher}"
+    
+    def is_synced(self,path: Folder): #True = file is synced / False = file exists but is outdated / None: file does not exist
+        try:
+            return (datetime.fromtimestamp(os.path.getmtime(path.join(self.name))) >= self.mtime)
+        except FileNotFoundError:
+            return None
+    
 class DTable: # Downloads table
     
     def __new__(self, html: bs) -> [ClipFile]:
@@ -131,7 +146,7 @@ def download(url, size):
             file.write(data)
 """
 
-def download_to_file(filepath: str, url: str, file_size=0, file_time=0): #TODO refactor function with ClipFile and change file time
+def download_to_file(filepath: str, url: str, file_size=0, file_mtime=None): #TODO refactor function with ClipFile and change file time
     try:
         r = session.get(url, stream=True)
         if file_size==0: file_size=r.headers['Content-Length']
@@ -144,10 +159,17 @@ def download_to_file(filepath: str, url: str, file_size=0, file_time=0): #TODO r
                     if chunk:
                         pbar.update(len(chunk))
                         f.write(chunk)
+            if file_mtime is not None:
+                log.debug("Mod-time do ficheiro:", os.stat(filepath).st_mtime)
+                mtime = file_mtime.timestamp()
+                log.debug("A actualizar para", mtime)
+                os.utime(filepath,times=(mtime,mtime))
+                log.debug("Novo mod-time:", os.stat(filepath).st_mtime)
+
         else:
             raise requests.HTTPError(f'Status code is {r.status_code}')
     except Exception as ex:
-        print(f'[-] Failed to download \'{url}\'! {str(ex)}')
+        log.error(f'[-] Failed to download \'{url}\'! {str(ex)}')
         pass
 
 def main():
@@ -167,11 +189,19 @@ def main():
     # Get downloads table
     table = DTable(soup)
 
-    path="/tmp/"
+    path = Folder("/tmp/clipper/")
 
     for file in table:
-        print(f"{file} {file.exists(path)}")
-
+        log.debug(f"{file} {file.is_synced(path)}")
+        match file.is_synced(path):
+            case True:
+                print(f"Encontrado {file.name} na pasta, a saltar...")
+            case False:
+                print(f"O ficheiro {file.name} está desactualizado, a transferir...")
+                download_to_file(os.path.join(path,file.name),file.link,file.size,file.mtime)
+            case None:
+                print(f"A transferir {file.name}...")
+                download_to_file(os.path.join(path,file.name),file.link,file.size,file.mtime)
     """
     # Get all download links
     links = []
