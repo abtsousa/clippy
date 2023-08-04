@@ -1,4 +1,6 @@
-import requests, re, getpass, os
+import requests, getpass, os 
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 from datetime import datetime
 import pandas as pd
 from bs4 import BeautifulSoup as bs
@@ -6,8 +8,14 @@ from tqdm import tqdm
 
 class LoginError(Exception):
     "Raised when the login fails"
-    def __init__(self, message="Login error"):
-        print(message)
+retry_strategy = Retry(
+    total=3,  # Number of total retries (including the initial request)
+    backoff_factor=0.3,  # Factor to apply exponential backoff between retries
+    status_forcelist=[500, 502, 503, 504],  # HTTP status codes to retry
+)
+
+# Create a custom HTTP adapter with the retry strategy
+adapter = HTTPAdapter(max_retries=retry_strategy)
 
 session = requests.Session()
 domain='https://clip.fct.unl.pt'
@@ -92,12 +100,17 @@ def getLogin():
     }
 
     try:
-        response = session.post('https://clip.fct.unl.pt/', data=login_data)
+        response = session.post('https://clip.fct.unl.pt/', data=login_data, timeout=10)
         response.raise_for_status()  # Raise an exception for HTTP errors
         if "Autenticação inválida" in response.text:
             raise LoginError("Autenticação falhou.")
+    except requests.exceptions.ReadTimeout:
+        count += 1
+        if count > 3: raise LoginError("Demasiadas tentativas de conexão. Tente novamente mais tarde.")
+        log.warning(f"Ligação ao servidor excedeu o tempo, a tentar novamente... ({count}/3)")
+        getLogin(username,password)
     except requests.exceptions.RequestException as e:
-        raise LoginError("Erro de conexão durante o login.")
+        raise LoginError(f"Erro de conexão durante o login: {e}")
 
 def get_URL(year: int, semester: int, unit: int, type: str):
     return f'{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?tipo_de_per%EDodo_lectivo=s&tipo_de_documento_de_unidade={type}&ano_lectivo={year}&per%EDodo_lectivo={semester}&unidade_curricular={unit}'
