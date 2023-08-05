@@ -5,8 +5,13 @@ from datetime import datetime
 import pandas as pd
 from bs4 import BeautifulSoup as bs
 from tqdm import tqdm
+
+#Logging
 import logging as log
 log.basicConfig(format="[%(levelname)s] %(message)s", level=log.WARNING)
+
+#Threading
+import concurrent.futures
 
 class LoginError(Exception):
     "Raised when the login fails"
@@ -221,6 +226,14 @@ def parse_units(year: int, user: int):
     soup = bs(get_html(url), 'html.parser') #TODO quando o servidor falha a meio dá IndexError out of range
     return UnitsList(soup)
 
+def search_files_in_category(category: str, index: IndexCount, unit: Unit, full_path: Folder):
+    print(f"> A procurar {category}...")
+    doc_type = index.get_type(category)
+    table = parse_docs(unit.year,unit.semester_type, unit.semester, unit.unit, doc_type)
+    for file in table:
+        folder = full_path.join(category)
+        get_file(file,folder)
+
 def download_to_file(filepath: str, url: str, file_size=0, file_mtime=None): #TODO refactor function with ClipFile and change file time
     try:
         r = session.get(url, stream=True)
@@ -275,25 +288,21 @@ def main():
     units = parse_units(year,user)
     print("Encontradas as seguintes unidades: "+" | ".join(unit.name for unit in units) )
 
-    for unit in units:
-        print(f"A procurar documentos de {unit.name}...")
-        full_path = path.join(unit.year)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+        for unit in units:
+            print(f"A procurar documentos de {unit.name}...")
+            full_path = path.join(unit.year)
 
-        index = parse_index(unit.year, unit.semester_type, unit.semester, unit.unit)
+            index = parse_index(unit.year, unit.semester_type, unit.semester, unit.unit)
 
-        if not index: #skips creating directory if there are no documents
-            log.info(f"Não foram encontrados documentos em {unit.name}")
-        else:
-            full_semester = unit.semester+unit.semester_type.upper()
-            full_path = full_path.join(full_semester).join(unit.name)
-        
-        for category,count in index.items():
-            print(f"> A procurar {category}...")
-            doc_type = index.get_type(category)
-            table = parse_docs(unit.year,unit.semester_type, unit.semester, unit.unit, doc_type)
-            for file in table:
-                folder = full_path.join(category)
-                get_file(file,folder)
+            if not index: #skips creating directory if there are no documents
+                log.info(f"Não foram encontrados documentos em {unit.name}")
+            else:
+                full_semester = unit.semester+unit.semester_type.upper()
+                full_path = full_path.join(full_semester).join(unit.name)
+            
+                for category,count in index.items():
+                    pool.submit(search_files_in_category,category,index,unit,full_path)
 
 if __name__ == "__main__":
     main()
