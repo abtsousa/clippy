@@ -227,12 +227,17 @@ def parse_units(year: int, user: int):
     return UnitsList(soup)
 
 def search_files_in_category(category: str, index: IndexCount, unit: Unit, full_path: Folder):
-    print(f"> A procurar {category}...")
-    doc_type = index.get_type(category)
-    table = parse_docs(unit.year,unit.semester_type, unit.semester, unit.unit, doc_type)
-    for file in table:
-        folder = full_path.join(category)
-        get_file(file,folder)
+    try:
+        print(f"> A procurar {category}...")
+        doc_type = index.get_type(category)
+        table = parse_docs(unit.year,unit.semester_type, unit.semester, unit.unit, doc_type)
+        for file in table:
+            folder = full_path.join(category)
+            get_file(file,folder)
+    except Exception as ex:
+        log.error(f'Erro a procurar {category} de {unit}: {str(ex)}')
+        pass
+
 
 def download_to_file(filepath: str, url: str, file_size=0, file_mtime=None): #TODO refactor function with ClipFile and change file time
     try:
@@ -257,20 +262,21 @@ def download_to_file(filepath: str, url: str, file_size=0, file_mtime=None): #TO
         else:
             raise requests.HTTPError(f'Código de estado HTTP: {r.status_code}')
     except Exception as ex:
-        log.error(f'[-] Falhou o download de \'{url}\'! {str(ex)}')
+        log.error(f'Falhou o download de \'{url}\': {str(ex)}')
         pass
     # print(soup.find("td", class_="barra_de_escolhas"})) # get left sidebar TODO parse number of downloads
 
 def get_file(file: ClipFile, path: Folder):
     log.debug(f"{file} {file.is_synced(path)}")
+    file_path = os.path.join(path,file.name)
     match file.is_synced(path):
         case True:
-            log.info(f"Encontrado {file.name} na pasta, a saltar...")
+            log.info(f"Encontrado {file.name} na pasta {path}, a saltar...")
         case False:
-            print(f"O ficheiro {file.name} está desactualizado, a transferir...")
+            print(f"O ficheiro {file_path} está desactualizado, a transferir...")
             download_to_file(os.path.join(path,file.name),file.link,file.size,file.mtime)
         case None:
-            print(f"A transferir {file.name}...")
+            print(f"A transferir {file_path}...")
             download_to_file(os.path.join(path,file.name),file.link,file.size,file.mtime)
 
 def main():
