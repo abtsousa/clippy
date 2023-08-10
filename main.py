@@ -12,7 +12,21 @@ from urllib3.util import Retry
 """
 Clipper
 A simple web scraper and downloader for FCT-NOVA's internal e-learning platform, CLIP.
+The program scrapes a user's courses for available downloads and syncs them with a local folder.
+
+CLIP's files are organized in subcategories for each academic course like this:
+Academic year >> Course documents >> Document subcategory >> Files list
+
+Clipper successfully navigates the site in order to scrape it, and compares it with a local folder
+with a similar structure, syncing it to the server.
 """
+
+# Dev comment:
+# The code mimics the site's structure, as follows:
+#       CLIP: Academic year   >> Course >> Document subcategory >> Files list >>   File
+#    Clipper:  CourseList     >> Course >>      CatCount        >>  FilesList >> ClipFile
+# Local copy:      Year       /  Course /       Category        /     Files
+
 __author__ = "Afonso Bras Sousa (LEI-65263)"
 __maintainer__ = "Afonso Bras Sousa"
 __email__ = "ab.sousa@campus.fct.unl.pt"
@@ -47,7 +61,7 @@ class LoginError(Exception):
 
 class Folder(str):
     """
-    Represents a folder in the system.
+    Represents a local folder.
 
     This class inherits from the built-in str class and provides additional
     functionality for working with file paths and creating directories.
@@ -84,7 +98,7 @@ class Folder(str):
     
     def join(self, path2: str) -> 'Folder':
         """
-        Append a path to the current folder path and return a new Folder instance.
+        Append a path to the current folder path and return it as a new Folder instance.
 
         Args:
             path2 (str): The path to append to the current folder path.
@@ -109,12 +123,12 @@ class Folder(str):
         """
         fullpath = os.path.join(self, filename)
         if not os.path.isfile(fullpath):
-            raise FileNotFoundError
+            raise FileNotFoundError(f"O ficheiro {filename} não foi encontrado na pasta {self}.")
         return fullpath
 
 class ClipFile:
     """
-    Represents a downloadable file with associated information.
+    Represents a file in CLIP, and its associated information.
 
     Args:
         row (pd.Series): A pandas Series containing data for the file.
@@ -127,7 +141,7 @@ class ClipFile:
         teacher (str): The name of the teacher who uploaded the file.
 
     Methods:
-        is_synced(path: Folder) -> Union[bool, None]:
+        is_synced(path: Folder) -> bool, None:
             Check if the file is synchronized with a local path.
 
     Usage:
@@ -161,7 +175,7 @@ class ClipFile:
         """
         return f"{self.name} {self.link} {self.mtime} {self.size} {self.teacher}"
     
-    def is_synced(self, path: Folder) -> Union[bool, None]:
+    def is_synced(self, path: Folder):
         """
         Check if the file is synchronized with a local path.
 
@@ -170,18 +184,18 @@ class ClipFile:
                           local path where the file is expected to exist.
 
         Returns:
-            Union[bool, None]: True if the file is synchronized (up to date).
-                              False if the file exists but is outdated.
-                              None if the file does not exist at the specified path.
+            True if the file is synchronized (up to date).
+            False if the file exists but is outdated.
+            None if the file does not exist at the specified path.
         """
         try:
             return (datetime.fromtimestamp(os.path.getmtime(path.get_filepath(self.name))) >= self.mtime)
         except FileNotFoundError:
             return None
 
-class DTable:
+class FilesList:
     """
-    Represents a table of downloadable files and their associated information.
+    Represents a subcategory of documents, that are displayed in CLIP as a table of downloadable files.
     Returns an array of ClipFile objects, one for each file in the table.
 
     Args:
@@ -190,17 +204,17 @@ class DTable:
     Methods:
         convert_str_to_byte(size: str) -> int:
             Convert a human-readable size string to bytes.
-        get_downloads_table(html: bs) -> pd.DataFrame:
+        get_files_table(html: bs) -> pd.DataFrame:
             Internal method that extracts the downloads table from the HTML content.
 
     Usage:
         html_content = ...
-        dtable = DTable(html_content)
+        dtable = FilesList(html_content)
     """
 
     def __new__(cls, html: bs) -> [ClipFile]:
         """
-        Create an array of ClipFile instances based on the downloads table.
+        Create an array of ClipFile instances based on a subcategory's table.
 
         Args:
             html (bs): Beautiful Soup object containing the HTML content of the table.
@@ -209,7 +223,7 @@ class DTable:
             [ClipFile]: An array of ClipFile instances.
         """
         files = []
-        table = cls.get_downloads_table(cls,html)
+        table = cls.get_files_table(cls,html)
         for row in table.index:
             file = ClipFile(table.iloc[row])
             files.append(file)
@@ -234,9 +248,9 @@ class DTable:
         num += 1 # Hack to get the right size since the size in the html table actually rounds it wrong
         return num * factor
 
-    def get_downloads_table(self, html: bs) -> pd.DataFrame:
+    def get_files_table(self, html: bs) -> pd.DataFrame:
         """
-        Extract the downloads table from the HTML content.
+        Extract the table from the HTML content.
 
         Args:
             html (bs): Beautiful Soup object containing the HTML content of the table.
@@ -262,9 +276,10 @@ class DTable:
         
         return df
 
-class IndexCount(dict):
+class CatCount(dict):
     """
-    Represents a dictionary of document counts for different categories.
+    Short for CategoryCount - a dictionary representing CLIP's subcategory index (key)
+    with respective file count (value).
     This class inherits from the built-in dictionary class.
 
     Args:
@@ -273,17 +288,17 @@ class IndexCount(dict):
     Methods:
         get_links(html: bs) -> List[bs.Tag]:
             Internal method that extracts links from the HTML content.
-        get_type(key: str) -> str:
-            Get the type code for a given key.
+        get_catID(key: str) -> str:
+            Get the ID for a given category (key).
 
     Usage:
         html_content = ...
-        index_count = IndexCount(html_content)
+        index_count = CatCount(html_content)
     """
 
     def __init__(self, html: bs):
         """
-        Initialize an IndexCount instance based on HTML content.
+        Initialize an CatCount instance based on HTML content.
 
         Args:
             html (bs): Beautiful Soup object containing the HTML content.
@@ -308,17 +323,17 @@ class IndexCount(dict):
         table = html.find_all("td", attrs={"width": "100%"})[1].find_all("a")
         return table
 
-    def get_type(self, key: str) -> str:
+    def get_catID(self, category: str) -> str:
         """
-        Get the type code for a given key.
+        Get the URL code / ID for a given category.
 
         Args:
-            key (str): The key (category) for which to retrieve the type code.
+            category (str): The category for which to retrieve the ID.
 
         Returns:
-            str: The corresponding type code.
+            str: The corresponding ID.
         """
-        type_dict = {
+        ID_dict = {
             "Material Multimédia": "0ac",
             "Problemas": "1e",
             "Protocolos": "2tr",
@@ -328,84 +343,85 @@ class IndexCount(dict):
             "Textos de Apoio": "ta",
             "Outros": "xot",
         }
-        return type_dict[key]
+        return ID_dict[category]
 
-class Unit:
+class Course:
     """
-    Represents an academic unit (e.g., course, module) with associated information.
+    Represents an academic course with associated information.
+    The program automatically extracts the relevant attributes from the associated link.
 
     Args:
-        name (str): The name of the unit.
-        link (str): The link to the unit's details page.
+        name (str): The name of the course.
+        link (str): The link to the course's details page.
 
     Attributes:
-        name (str): The name of the unit.
-        year (str): The academic year associated with the unit.
-        unit (str): The identifier for the unit.
-        semester_type (str): The type of semester (e.g., "p" for "primeiro").
+        name (str): The name of the course.
+        year (str): The academic year associated with the course.
+        ID (str): The identifier for the course.
+        semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
         semester (str): The semester number.
 
     Usage:
-        unit = Unit(name, link)
+        course = Course(name, link)
     """
 
     def __init__(self, name: str, link: str):
         """
-        Initialize a Unit instance.
+        Initialize a Course instance.
 
         Args:
-            name (str): The name of the unit.
-            link (str): The link to the unit's details page.
+            name (str): The name of the course.
+            link (str): The link to the course's details page.
         """
         self.name = name
         self.year = re.search(r"ano_lectivo=(\d+)", link).group(1)
-        self.unit = re.search(r"unidade=(\d+)", link).group(1)
+        self.ID = re.search(r"unidade=(\d+)", link).group(1)
         self.semester_type = re.search(r"tipo_de_per%EDodo_lectivo=(\w)", link).group(1)
         self.semester = re.search(r"per%EDodo_lectivo=(\d)", link).group(1)
     
     def __str__(self):
         """
-        Get a string representation of the Unit instance.
+        Get a string representation of the Course instance.
 
         Returns:
-            str: A string representation of the Unit instance.
+            str: A string representation of the Course instance.
         """
-        return f"{self.name} {self.unit} {self.year} {self.semester}{self.semester_type.upper()}"
+        return f"{self.name} {self.ID} {self.year} {self.semester}{self.semester_type.upper()}"
 
-class UnitsList(list):
+class CourseList(list):
     """
-    Represents a list of academic units with associated links.
+    Represents a list of academic courses with associated links.
 
     Args:
         html (bs): Beautiful Soup object containing the HTML content.
 
     Usage:
         html_content = ...
-        units_list = UnitsList(html_content)
+        courses_list = CourseList(html_content)
     """
 
     def __init__(self, html: bs):
         """
-        Initialize a UnitsList instance based on HTML content.
+        Initialize a CourseList instance based on HTML content.
 
         Args:
             html (bs): Beautiful Soup object containing the HTML content.
         """
         super().__init__()
         links = self.get_links(html)
-        units = [Unit(link.text, link['href']) for link in links]
-        self.extend(units)
+        courses = [Course(link.text, link['href']) for link in links]
+        self.extend(courses)
     
     def __str__(self):
         """
-        Get a string representation of the UnitsList instance.
+        Get a string representation of the CourseList instance.
 
         Returns:
-            str: A string representation of the UnitsList instance.
+            str: A string representation of the CourseList instance.
         """
-        return '\n'.join(str(unit) for unit in self)
+        return '\n'.join(str(course) for course in self)
     
-    def get_links(self, html: bs) -> [bs.Tag]:
+    def get_links(self, html: bs) -> [str]:
         """
         Extract links from the HTML content.
 
@@ -413,7 +429,7 @@ class UnitsList(list):
             html (bs): Beautiful Soup object containing the HTML content.
 
         Returns:
-            [bs.Tag]: An array of Beautiful Soup Tag objects.
+            An array of links.
         """
         table = html.find_all("td", attrs={"width": "100%"})[1].find_all("a", {"href": re.compile(r"&unidade=(\d+)")}) # TODO possivel IndexError out of range
         return table
@@ -457,9 +473,9 @@ def get_login(username: str = None,password: str = None,count: int = 0) -> int:
     except requests.exceptions.RequestException as e:
         raise LoginError(f"Erro de conexão durante o login: {e}")
 
-def get_URL_UnitsList(year: int, user: int):
+def get_URL_CourseList(year: int, user: int):
     """
-    Generate the URL to the list of academic units in CLIP.
+    Generate the URL to the list of academic courses in CLIP.
 
     Parameters:
         year (int): The academic year.
@@ -470,36 +486,36 @@ def get_URL_UnitsList(year: int, user: int):
     """
     return f"{domain}/utente/eu/aluno/ano_lectivo/unidades?ano_lectivo={year}&institui%E7%E3o=97747&aluno={user}"
 
-def get_URL_Index(year: int, semester_type: str, semester: int, unit: int):
+def get_URL_Index(year: int, semester_type: str, semester: int, course: int):
     """
-    Generate the URL to the index of download categories for a specific unit in a semester.
+    Generate the URL to the index of download categories for a specific course in a semester.
 
     Parameters:
         year (int): The academic year.
         semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
         semester (int): The semester number.
-        unit (int): The unit ID.
+        course (int): The course ID.
 
     Returns:
         str: The generated URL.
     """
-    return f"{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?edi%E7%E3o_de_unidade_curricular={unit},97747,{year},{semester_type},{semester}"
+    return f"{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?edi%E7%E3o_de_unidade_curricular={course},97747,{year},{semester_type},{semester}"
 
-def get_URL_DList(year: int, semester_type: str, semester: int, unit: int, doc_type: str):
+def get_URL_FileList(year: int, semester_type: str, semester: int, course: int, doc_type: str):
     """
-    Generate the URL to retrieve a list of downloads for a specific unit and document type in a semester.
+    Generate the URL to retrieve a list of downloads for a specific course and document type in a semester.
 
     Parameters:
         year (int): The academic year.
         semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
         semester (int): The semester number.
-        unit (int): The unit ID.
+        course (int): The course ID.
         doc_type (str): The type of document.
 
     Returns:
         str: The generated URL.
     """
-    return f'{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?tipo_de_per%EDodo_lectivo={semester_type}&tipo_de_documento_de_unidade={doc_type}&ano_lectivo={year}&per%EDodo_lectivo={semester}&unidade_curricular={unit}'
+    return f'{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?tipo_de_per%EDodo_lectivo={semester_type}&tipo_de_documento_de_unidade={doc_type}&ano_lectivo={year}&per%EDodo_lectivo={semester}&unidade_curricular={course}'
     
 def get_html(url: str):
     """
@@ -524,78 +540,78 @@ def download(url, size):
             file.write(data)
 """
 
-def parse_index(year: int, semester_type: str, semester: int, unit: int):
+def parse_index(year: int, semester_type: str, semester: int, course: int):
     """
-    Parse the index of documents for a specific unit in a semester and return it as an IndexCount dictionary.
+    Parse the index of documents for a specific course in a semester and return it as an CatCount dictionary.
 
     Parameters:
         year (int): The academic year.
         semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
         semester (int): The semester number.
-        unit (int): The unit ID.
+        course (int): The course ID.
 
     Returns:
-        IndexCount: A dictionary containing parsed index information.
+        CatCount: A dictionary containing parsed index information.
     """
     # Get all the links count
     # Create url link for the class
-    url = get_URL_Index(year,semester_type, semester,unit)
+    url = get_URL_Index(year,semester_type, semester,course)
     soup = bs(get_html(url), 'html.parser')  
-    return IndexCount(soup)
+    return CatCount(soup)
 
-def parse_docs(year: int, semester_type: str, semester: int, unit: int, doc_type: str):
+def parse_docs(year: int, semester_type: str, semester: int, course: int, doc_type: str):
     """
-    Parse a list of documents for a specific unit and document type in a semester.
+    Parse a list of documents for a specific course and document type in a semester.
     Returns an array of ClipFile objects, one for each document.
 
     Parameters:
         year (int): The academic year.
         semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
         semester (int): The semester number.
-        unit (int): The unit ID.
+        course (int): The course ID.
         doc_type (str): The type of document.
 
     Returns:
-        DTable: An array of ClipFile objects.
+        FilesList: An array of ClipFile objects.
     """
-    url = get_URL_DList(year,semester_type,semester,unit,doc_type)
+    url = get_URL_FileList(year,semester_type,semester,course,doc_type)
     soup = bs(get_html(url), 'html.parser')  
-    return DTable(soup)
+    return FilesList(soup)
 
-def parse_units(year: int, user: int):
+def parse_courses(year: int, user: int):
     """
-    Parse a list of units for a specific year and user.
+    Parse a list of courses for a specific year and user.
 
     Parameters:
         year (int): The academic year.
         user (int): The user ID.
 
     Returns:
-        UnitsList: An object containing parsed unit information.
+        CourseList: An object containing parsed course information.
     """
-    url = get_URL_UnitsList(year, user)
+    url = get_URL_CourseList(year, user)
     soup = bs(get_html(url), 'html.parser') #TODO quando o servidor falha a meio dá IndexError out of range
-    return UnitsList(soup)
+    return CourseList(soup)
 
-def search_files_in_category(category: str, index: IndexCount, unit: Unit, full_path: Folder):
+def search_files_in_category(category: str, index: CatCount, course: Course, full_path: Folder):
     """
     Search for files in a specific category and download them if needed.
 
     Parameters:
         category (str): The category of files to search for.
-        index (IndexCount): The index of document categories.
-        unit (Unit): The unit for which to search documents.
+        index (CatCount): The index of document categories.
+        course (Course): The course for which to search documents.
         full_path (Folder): The full path to the directory where files should be downloaded.
     """
     try:
         print(f"> A procurar {category}...")
-        doc_type = index.get_type(category)
-        table = parse_docs(unit.year,unit.semester_type, unit.semester, unit.unit, doc_type)
+        doc_type = index.get_catID(category)
+        table = parse_docs(course.year,course.semester_type, course.semester, course.ID, doc_type)
         for file in table:
             folder = full_path.join(category)
             get_file(file,folder)
     except Exception as ex:
-        log.error(f'Erro a procurar {category} de {unit}: {str(ex)}')
+        log.error(f'Erro a procurar {category} de {course}: {str(ex)}')
         pass
 
 
@@ -668,24 +684,24 @@ def main():
     path = Folder(os.getcwd())
     year = 2023
 
-    units = parse_units(year,user)
-    print("Encontradas as seguintes unidades: "+" | ".join(unit.name for unit in units) )
+    courses = parse_courses(year,user)
+    print("Encontradas as seguintes unidades: "+" | ".join(course.name for course in courses) )
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-        for unit in units:
-            print(f"A procurar documentos de {unit.name}...")
-            full_path = path.join(unit.year)
+        for course in courses:
+            print(f"A procurar documentos de {course.name}...")
+            full_path = path.join(course.year)
 
-            index = parse_index(unit.year, unit.semester_type, unit.semester, unit.unit)
+            index = parse_index(course.year, course.semester_type, course.semester, course.ID)
 
             if not index: #skips creating directory if there are no documents
-                log.info(f"Não foram encontrados documentos em {unit.name}")
+                log.info(f"Não foram encontrados documentos em {course.name}")
             else:
-                full_semester = unit.semester+unit.semester_type.upper()
-                full_path = full_path.join(full_semester).join(unit.name)
+                full_semester = course.semester+course.semester_type.upper()
+                full_path = full_path.join(full_semester).join(course.name)
             
                 for category,count in index.items():
-                    pool.submit(search_files_in_category,category,index,unit,full_path)
+                    pool.submit(search_files_in_category,category,index,course,full_path)
 
 if __name__ == "__main__":
     main()
