@@ -182,6 +182,7 @@ class ClipFile:
 class DTable:
     """
     Represents a table of downloadable files and their associated information.
+    Returns an array of ClipFile objects, one for each file in the table.
 
     Args:
         html (bs): Beautiful Soup object containing the HTML content of the table.
@@ -294,7 +295,7 @@ class IndexCount(dict):
             if int(value) != 0: #ignore links with zero files
                 self[key] = int(value)
     
-    def get_links(self, html: bs) -> List[bs.Tag]:
+    def get_links(self, html: bs):
         """
         Extract all links from the HTML content.
 
@@ -302,7 +303,7 @@ class IndexCount(dict):
             html (bs): Beautiful Soup object containing the HTML content.
 
         Returns:
-            List[bs.Tag]: A list of Beautiful Soup Tag objects.
+            [bs.Tag]: An array of Beautiful Soup Tag objects.
         """
         table = html.find_all("td", attrs={"width": "100%"})[1].find_all("a")
         return table
@@ -404,7 +405,7 @@ class UnitsList(list):
         """
         return '\n'.join(str(unit) for unit in self)
     
-    def get_links(self, html: bs) -> List[bs.Tag]:
+    def get_links(self, html: bs) -> [bs.Tag]:
         """
         Extract links from the HTML content.
 
@@ -412,12 +413,23 @@ class UnitsList(list):
             html (bs): Beautiful Soup object containing the HTML content.
 
         Returns:
-            List[bs.Tag]: A list of Beautiful Soup Tag objects.
+            [bs.Tag]: An array of Beautiful Soup Tag objects.
         """
         table = html.find_all("td", attrs={"width": "100%"})[1].find_all("a", {"href": re.compile(r"&unidade=(\d+)")}) # TODO possivel IndexError out of range
         return table
 
-def get_login(username=None,password=None,count=0) -> int:
+def get_login(username: str = None,password: str = None,count: int = 0) -> int:
+    """
+    Get the login username and password from the user and generate a session.
+    
+    Args:
+        username (str): The user's username (optional).
+        password (str): The user's password (optional).
+        count (int): Counts the number of retries it has took.
+    
+    Returns:
+        int: The user's internal ID.
+    """
     if username is None: username= input("Nome de utilizador: ")
     if password is None: password = getpass.getpass()
 
@@ -446,15 +458,59 @@ def get_login(username=None,password=None,count=0) -> int:
         raise LoginError(f"Erro de conexão durante o login: {e}")
 
 def get_URL_UnitsList(year: int, user: int):
+    """
+    Generate the URL to the list of academic units in CLIP.
+
+    Parameters:
+        year (int): The academic year.
+        user (int): The user ID.
+
+    Returns:
+        str: The generated URL.
+    """
     return f"{domain}/utente/eu/aluno/ano_lectivo/unidades?ano_lectivo={year}&institui%E7%E3o=97747&aluno={user}"
 
 def get_URL_Index(year: int, semester_type: str, semester: int, unit: int):
+    """
+    Generate the URL to the index of download categories for a specific unit in a semester.
+
+    Parameters:
+        year (int): The academic year.
+        semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
+        semester (int): The semester number.
+        unit (int): The unit ID.
+
+    Returns:
+        str: The generated URL.
+    """
     return f"{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?edi%E7%E3o_de_unidade_curricular={unit},97747,{year},{semester_type},{semester}"
 
 def get_URL_DList(year: int, semester_type: str, semester: int, unit: int, doc_type: str):
-        return f'{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?tipo_de_per%EDodo_lectivo={semester_type}&tipo_de_documento_de_unidade={doc_type}&ano_lectivo={year}&per%EDodo_lectivo={semester}&unidade_curricular={unit}'
+    """
+    Generate the URL to retrieve a list of downloads for a specific unit and document type in a semester.
+
+    Parameters:
+        year (int): The academic year.
+        semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
+        semester (int): The semester number.
+        unit (int): The unit ID.
+        doc_type (str): The type of document.
+
+    Returns:
+        str: The generated URL.
+    """
+    return f'{domain}/utente/eu/aluno/ano_lectivo/unidades/unidade_curricular/actividade/documentos?tipo_de_per%EDodo_lectivo={semester_type}&tipo_de_documento_de_unidade={doc_type}&ano_lectivo={year}&per%EDodo_lectivo={semester}&unidade_curricular={unit}'
     
 def get_html(url: str):
+    """
+    Retrieve the HTML content of a given URL.
+
+    Parameters:
+        url (str): The URL to fetch.
+
+    Returns:
+        str: The HTML content of the URL.
+    """
     response = session.get(url)
     response.raise_for_status()  # Raise an exception for HTTP errors
     return response.text
@@ -469,6 +525,18 @@ def download(url, size):
 """
 
 def parse_index(year: int, semester_type: str, semester: int, unit: int):
+    """
+    Parse the index of documents for a specific unit in a semester and return it as an IndexCount dictionary.
+
+    Parameters:
+        year (int): The academic year.
+        semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
+        semester (int): The semester number.
+        unit (int): The unit ID.
+
+    Returns:
+        IndexCount: A dictionary containing parsed index information.
+    """
     # Get all the links count
     # Create url link for the class
     url = get_URL_Index(year,semester_type, semester,unit)
@@ -476,16 +544,49 @@ def parse_index(year: int, semester_type: str, semester: int, unit: int):
     return IndexCount(soup)
 
 def parse_docs(year: int, semester_type: str, semester: int, unit: int, doc_type: str):
+    """
+    Parse a list of documents for a specific unit and document type in a semester.
+    Returns an array of ClipFile objects, one for each document.
+
+    Parameters:
+        year (int): The academic year.
+        semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
+        semester (int): The semester number.
+        unit (int): The unit ID.
+        doc_type (str): The type of document.
+
+    Returns:
+        DTable: An array of ClipFile objects.
+    """
     url = get_URL_DList(year,semester_type,semester,unit,doc_type)
     soup = bs(get_html(url), 'html.parser')  
     return DTable(soup)
 
 def parse_units(year: int, user: int):
+    """
+    Parse a list of units for a specific year and user.
+
+    Parameters:
+        year (int): The academic year.
+        user (int): The user ID.
+
+    Returns:
+        UnitsList: An object containing parsed unit information.
+    """
     url = get_URL_UnitsList(year, user)
     soup = bs(get_html(url), 'html.parser') #TODO quando o servidor falha a meio dá IndexError out of range
     return UnitsList(soup)
 
 def search_files_in_category(category: str, index: IndexCount, unit: Unit, full_path: Folder):
+    """
+    Search for files in a specific category and download them if needed.
+
+    Parameters:
+        category (str): The category of files to search for.
+        index (IndexCount): The index of document categories.
+        unit (Unit): The unit for which to search documents.
+        full_path (Folder): The full path to the directory where files should be downloaded.
+    """
     try:
         print(f"> A procurar {category}...")
         doc_type = index.get_type(category)
@@ -499,6 +600,15 @@ def search_files_in_category(category: str, index: IndexCount, unit: Unit, full_
 
 
 def download_to_file(filepath: str, url: str, file_size=0, file_mtime=None): #TODO refactor function with ClipFile and change file time
+    """
+    Download a file from a given URL to a specified filepath.
+
+    Parameters:
+        filepath (str): The path where the downloaded file will be saved.
+        url (str): The URL of the file to download.
+        file_size (int, optional): The expected size of the file in bytes. Defaults to 0.
+        file_mtime (datetime.datetime, optional): The desired modification time for the downloaded file. Defaults to None.
+    """
     try:
         r = session.get(url, stream=True)
         if file_size==0: file_size=r.headers['Content-Length']
@@ -526,9 +636,17 @@ def download_to_file(filepath: str, url: str, file_size=0, file_mtime=None): #TO
     # print(soup.find("td", class_="barra_de_escolhas"})) # get left sidebar TODO parse number of downloads
 
 def get_file(file: ClipFile, path: Folder):
+    """
+    Search for a local file.
+    Calls download_to_file() to (re)download it if it's older or not found.
+
+    Parameters:
+        file (ClipFile): The file to download.
+        path (Folder): The path where the file should be saved.
+    """
     log.debug(f"{file} {file.is_synced(path)}")
     file_path = os.path.join(path,file.name)
-    match file.is_synced(path):
+    match file.is_synced(path):        
         case True:
             log.info(f"Encontrado {file.name} na pasta {path}, a saltar...")
         case False:
