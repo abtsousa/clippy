@@ -1,23 +1,15 @@
+#Import
 import requests, getpass, os, re
-from requests.adapters import HTTPAdapter
-from urllib3.util import Retry
-from datetime import datetime
+import logging as log
 import pandas as pd
+import concurrent.futures
+from requests.adapters import HTTPAdapter
+from datetime import datetime
 from bs4 import BeautifulSoup as bs
 from tqdm import tqdm
+from urllib3.util import Retry
 
-#Logging
-import logging as log
-log.basicConfig(format="[%(levelname)s] %(message)s", level=log.WARNING)
-
-#Threading
-import concurrent.futures
-
-class LoginError(Exception):
-    "Raised when the login fails"
-    def __init__(self, message="Erro de login"):
-        log.error(message)
-
+#Implement auto retry
 retry_strategy = Retry(
     total=3,  # Number of total retries (including the initial request)
     backoff_factor=0.3,  # Factor to apply exponential backoff between retries
@@ -26,28 +18,51 @@ retry_strategy = Retry(
 
 # Create a custom HTTP adapter with the retry strategy
 adapter = HTTPAdapter(max_retries=retry_strategy)
-
 session = requests.Session()
 session.mount("https://", adapter)
 session.mount("http://", adapter)
 domain='https://clip.fct.unl.pt'
 
+# Logging
+log.basicConfig(format="[%(levelname)s] %(message)s", level=log.WARNING)
+
+class LoginError(Exception):
+    """
+    Raised when the login fails
+    """
+    def __init__(self, message="Erro de login"):
+        log.error(message)
+
 class Folder(str): #subclass of String
+    """
+    Folder object.
+    Acts like a string with a file path.
+    Creates a folder in the system if the file path does not previously exist.
+    """
     def __new__(cls, path):
+        """
+        Creates a folder in the system if the file path does not previously exist.
+        """
         if not os.path.isdir(path):
             print(f"A criar a directoria '{path}'...")
             os.makedirs(path)
         return super().__new__(cls, path)
     
     def join(self, path2: str):
+        """
+        Appends a path to the folder and returns that object.
+        """
         return Folder(os.path.join(self,path2))
 
     def get_filepath(self, filename: str) -> str:
+        """
+        Returns a path to a file inside the folder, if it exists.
+        """
         fullpath = os.path.join(self, filename)
         if not os.path.isfile(fullpath): raise FileNotFoundError
         return fullpath
 
-class ClipFile: # File in clip
+class ClipFile:
 
     def __init__(self, row: pd.Series):
         self.name = row.at["Nome"]
