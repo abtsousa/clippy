@@ -542,7 +542,7 @@ def download(url, size):
 
 def parse_index(year: int, semester_type: str, semester: int, course: int):
     """
-    Parse the index of documents for a specific course in a semester and return it as an CatCount dictionary.
+    Parse the index of documents for a specific course in a semester and return it as a CatCount dictionary.
 
     Parameters:
         year (int): The academic year.
