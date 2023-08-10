@@ -9,6 +9,15 @@ from bs4 import BeautifulSoup as bs
 from tqdm import tqdm
 from urllib3.util import Retry
 
+"""
+Clipper
+A simple web scraper and downloader for FCT-NOVA's internal e-learning platform, CLIP.
+"""
+__author__ = "Afonso Bras Sousa (LEI-65263)"
+__maintainer__ = "Afonso Bras Sousa"
+__email__ = "ab.sousa@campus.fct.unl.pt"
+__version__ = "0.9b"
+
 #Implement auto retry
 retry_strategy = Retry(
     total=3,  # Number of total retries (including the initial request)
@@ -28,61 +37,176 @@ log.basicConfig(format="[%(levelname)s] %(message)s", level=log.WARNING)
 
 class LoginError(Exception):
     """
-    Raised when the login fails
+    Raised when the login fails.
+
+    Attributes:
+        message (str): A custom error message (optional).
     """
     def __init__(self, message="Erro de login"):
         log.error(message)
 
-class Folder(str): #subclass of String
+class Folder(str):
     """
-    Folder object.
-    Acts like a string with a file path.
-    Creates a folder in the system if the file path does not previously exist.
+    Represents a folder in the system.
+
+    This class inherits from the built-in str class and provides additional
+    functionality for working with file paths and creating directories.
+
+    Args:
+        path (str): The file path for the folder.
+
+    Attributes:
+        path (str): The file path for the folder.
+
+    Methods:
+        join(path2: str) -> Folder:
+            Append a path to the current folder path and return a new Folder instance.
+        get_filepath(filename: str) -> str:
+            Get the full path to a file inside the folder.
+
+    Usage:
+        folder = Folder("path/to/folder")
+        new_folder = folder.join("subfolder")
+        file_path = folder.get_filepath("file.txt")
     """
+
     def __new__(cls, path):
         """
-        Creates a folder in the system if the file path does not previously exist.
+        Create a Folder instance and create the folder if it doesn't exist.
+
+        Args:
+            path (str): The file path for the folder.
         """
         if not os.path.isdir(path):
             print(f"A criar a directoria '{path}'...")
             os.makedirs(path)
         return super().__new__(cls, path)
     
-    def join(self, path2: str):
+    def join(self, path2: str) -> 'Folder':
         """
-        Appends a path to the folder and returns that object.
+        Append a path to the current folder path and return a new Folder instance.
+
+        Args:
+            path2 (str): The path to append to the current folder path.
+
+        Returns:
+            Folder: A new Folder instance representing the combined path.
         """
-        return Folder(os.path.join(self,path2))
+        return Folder(os.path.join(self, path2))
 
     def get_filepath(self, filename: str) -> str:
         """
-        Returns a path to a file inside the folder, if it exists.
+        Get the full path to a file inside the folder.
+
+        Args:
+            filename (str): The name of the file inside the folder.
+
+        Returns:
+            str: The full file path.
+        
+        Raises:
+            FileNotFoundError: If the specified file does not exist in the folder.
         """
         fullpath = os.path.join(self, filename)
-        if not os.path.isfile(fullpath): raise FileNotFoundError
+        if not os.path.isfile(fullpath):
+            raise FileNotFoundError
         return fullpath
 
 class ClipFile:
+    """
+    Represents a downloadable file with associated information.
+
+    Args:
+        row (pd.Series): A pandas Series containing data for the file.
+
+    Attributes:
+        name (str): The name of the file.
+        link (str): The download link for the file.
+        mtime (datetime.datetime): The modification time of the file.
+        size (int): The size of the file in bytes.
+        teacher (str): The name of the teacher who uploaded the file.
+
+    Methods:
+        is_synced(path: Folder) -> Union[bool, None]:
+            Check if the file is synchronized with a local path.
+
+    Usage:
+        row_data = pd.Series(...)  # Contains data for the file
+        file = ClipFile(row_data)  # Create an instance of the ClipFile class
+        folder = Folder(...)        # Create an instance of the Folder class
+        
+        synced = file.is_synced(folder)  # Check if clip file is synchronized with the local folder
+
+    """
 
     def __init__(self, row: pd.Series):
+        """
+        Initialize a ClipFile instance based on a pandas Series.
+
+        Args:
+            row (pd.Series): A pandas Series containing data for the clip file.
+        """
         self.name = row.at["Nome"]
         self.link = row.at["Link"]
-        self.mtime = datetime.strptime(row.at["Data"],"%Y-%m-%d %H:%M")
+        self.mtime = datetime.strptime(row.at["Data"], "%Y-%m-%d %H:%M")
         self.size = row.at["Tamanho"]
         self.teacher = row.at["Docente"]
   
     def __str__(self):
+        """
+        Get a string representation of the ClipFile instance.
+
+        Returns:
+            str: A string representation of the ClipFile instance.
+        """
         return f"{self.name} {self.link} {self.mtime} {self.size} {self.teacher}"
     
-    def is_synced(self,path: Folder): #True = file is synced / False = file exists but is outdated / None: file does not exist
+    def is_synced(self, path: Folder) -> Union[bool, None]:
+        """
+        Check if the file is synchronized with a local path.
+
+        Args:
+            path (Folder): An instance of the Folder class representing the
+                          local path where the file is expected to exist.
+
+        Returns:
+            Union[bool, None]: True if the file is synchronized (up to date).
+                              False if the file exists but is outdated.
+                              None if the file does not exist at the specified path.
+        """
         try:
             return (datetime.fromtimestamp(os.path.getmtime(path.get_filepath(self.name))) >= self.mtime)
         except FileNotFoundError:
             return None
-    
-class DTable: # Documents table
-    
+
+class DTable:
+    """
+    Represents a table of downloadable files and their associated information.
+
+    Args:
+        html (bs): Beautiful Soup object containing the HTML content of the table.
+
+    Methods:
+        convert_str_to_byte(size: str) -> int:
+            Convert a human-readable size string to bytes.
+        get_downloads_table(html: bs) -> pd.DataFrame:
+            Internal method that extracts the downloads table from the HTML content.
+
+    Usage:
+        html_content = ...
+        dtable = DTable(html_content)
+    """
+
     def __new__(cls, html: bs) -> [ClipFile]:
+        """
+        Create an array of ClipFile instances based on the downloads table.
+
+        Args:
+            html (bs): Beautiful Soup object containing the HTML content of the table.
+
+        Returns:
+            [ClipFile]: An array of ClipFile instances.
+        """
         files = []
         table = cls.get_downloads_table(cls,html)
         for row in table.index:
@@ -91,7 +215,16 @@ class DTable: # Documents table
 
         return files
     
-    def convert_str_to_byte(size: str):
+    def convert_str_to_byte(size: str) -> int:
+        """
+        Convert a human-readable size string to bytes.
+
+        Args:
+            size (str): The size string, e.g., "1.2 MB".
+
+        Returns:
+            int: The size in bytes.
+        """
         size_name = ("B", "Kb", "Mb", "Gb", "Tb")
         # divide '1 GB' into ['1', 'GB']
         num, unit = int(size[:-2]), size[-2:]
@@ -100,10 +233,19 @@ class DTable: # Documents table
         num += 1 # Hack to get the right size since the size in the html table actually rounds it wrong
         return num * factor
 
-    def get_downloads_table(self, html):
-        df = pd.DataFrame(columns=['Nome','Link','Data','Tamanho','Docente'])
-        table=html.find_all("form")[1].find("table") # get downloads table TODO parse file size
-        for row in table.find_all("tr", {'bgcolor':True}):
+    def get_downloads_table(self, html: bs) -> pd.DataFrame:
+        """
+        Extract the downloads table from the HTML content.
+
+        Args:
+            html (bs): Beautiful Soup object containing the HTML content of the table.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing data for the downloads table.
+        """
+        df = pd.DataFrame(columns=['Nome', 'Link', 'Data', 'Tamanho', 'Docente'])
+        table = html.find_all("form")[1].find("table") # get downloads table TODO parse file size
+        for row in table.find_all("tr", {'bgcolor': True}):
             columns = row.find_all("td")
 
             if columns != []:
@@ -119,59 +261,161 @@ class DTable: # Documents table
         
         return df
 
-class IndexCount(dict): # Documents count
+class IndexCount(dict):
+    """
+    Represents a dictionary of document counts for different categories.
+    This class inherits from the built-in dictionary class.
 
-    def __init__(self, html:bs):
-        super().__init__
+    Args:
+        html (bs): Beautiful Soup object containing the HTML content.
+
+    Methods:
+        get_links(html: bs) -> List[bs.Tag]:
+            Internal method that extracts links from the HTML content.
+        get_type(key: str) -> str:
+            Get the type code for a given key.
+
+    Usage:
+        html_content = ...
+        index_count = IndexCount(html_content)
+    """
+
+    def __init__(self, html: bs):
+        """
+        Initialize an IndexCount instance based on HTML content.
+
+        Args:
+            html (bs): Beautiful Soup object containing the HTML content.
+        """
+        super().__init__()
         links = self.get_links(html)
-        counter = [re.search(r"^(\D+) \((\d+)\)",match.text.strip()).group(1,2) for match in links]
+        counter = [re.search(r"^(\D+) \((\d+)\)", match.text.strip()).group(1, 2) for match in links]
         for key, value in counter:
             if int(value) != 0: #ignore links with zero files
                 self[key] = int(value)
     
-    def get_links(self, html):
-        table = html.find_all("td", attrs={"width":"100%"})[1].find_all("a")
+    def get_links(self, html: bs) -> List[bs.Tag]:
+        """
+        Extract all links from the HTML content.
+
+        Args:
+            html (bs): Beautiful Soup object containing the HTML content.
+
+        Returns:
+            List[bs.Tag]: A list of Beautiful Soup Tag objects.
+        """
+        table = html.find_all("td", attrs={"width": "100%"})[1].find_all("a")
         return table
 
-    def get_type(self, key):
+    def get_type(self, key: str) -> str:
+        """
+        Get the type code for a given key.
+
+        Args:
+            key (str): The key (category) for which to retrieve the type code.
+
+        Returns:
+            str: The corresponding type code.
+        """
         type_dict = {
-            "Material Multimédia":"0ac",
-            "Problemas":"1e",
-            "Protocolos":"2tr",
-            "Seminários":"3sm",
-            "Exames":"ex",
-            "Testes":"t",
-            "Textos de Apoio":"ta",
-            "Outros":"xot",
+            "Material Multimédia": "0ac",
+            "Problemas": "1e",
+            "Protocolos": "2tr",
+            "Seminários": "3sm",
+            "Exames": "ex",
+            "Testes": "t",
+            "Textos de Apoio": "ta",
+            "Outros": "xot",
         }
         return type_dict[key]
 
 class Unit:
+    """
+    Represents an academic unit (e.g., course, module) with associated information.
+
+    Args:
+        name (str): The name of the unit.
+        link (str): The link to the unit's details page.
+
+    Attributes:
+        name (str): The name of the unit.
+        year (str): The academic year associated with the unit.
+        unit (str): The identifier for the unit.
+        semester_type (str): The type of semester (e.g., "p" for "primeiro").
+        semester (str): The semester number.
+
+    Usage:
+        unit = Unit(name, link)
+    """
+
     def __init__(self, name: str, link: str):
+        """
+        Initialize a Unit instance.
+
+        Args:
+            name (str): The name of the unit.
+            link (str): The link to the unit's details page.
+        """
         self.name = name
-        self.year = re.search(r"ano_lectivo=(\d+)",link).group(1)
-        self.unit = re.search(r"unidade=(\d+)",link).group(1)
-        self.semester_type = re.search(r"tipo_de_per%EDodo_lectivo=(\w)",link).group(1)
-        self.semester = re.search(r"per%EDodo_lectivo=(\d)",link).group(1)
+        self.year = re.search(r"ano_lectivo=(\d+)", link).group(1)
+        self.unit = re.search(r"unidade=(\d+)", link).group(1)
+        self.semester_type = re.search(r"tipo_de_per%EDodo_lectivo=(\w)", link).group(1)
+        self.semester = re.search(r"per%EDodo_lectivo=(\d)", link).group(1)
     
     def __str__(self):
-        return f"{self.name} {self.unit} {self.year} {self.semester}{self.semester_type.upper()}"
-    
-class UnitsList(list): # List of units and their links
+        """
+        Get a string representation of the Unit instance.
 
-    def __init__(self, html:bs):
+        Returns:
+            str: A string representation of the Unit instance.
+        """
+        return f"{self.name} {self.unit} {self.year} {self.semester}{self.semester_type.upper()}"
+
+class UnitsList(list):
+    """
+    Represents a list of academic units with associated links.
+
+    Args:
+        html (bs): Beautiful Soup object containing the HTML content.
+
+    Usage:
+        html_content = ...
+        units_list = UnitsList(html_content)
+    """
+
+    def __init__(self, html: bs):
+        """
+        Initialize a UnitsList instance based on HTML content.
+
+        Args:
+            html (bs): Beautiful Soup object containing the HTML content.
+        """
         super().__init__()
         links = self.get_links(html)
-        units = [Unit(link.text,link['href']) for link in links]
+        units = [Unit(link.text, link['href']) for link in links]
         self.extend(units)
     
     def __str__(self):
+        """
+        Get a string representation of the UnitsList instance.
+
+        Returns:
+            str: A string representation of the UnitsList instance.
+        """
         return '\n'.join(str(unit) for unit in self)
     
-    def get_links(self, html):
-        table = html.find_all("td", attrs={"width":"100%"})[1].find_all("a", {"href": re.compile(r"&unidade=(\d+)")}) # TODO possivel IndexError out of range
-        return table
+    def get_links(self, html: bs) -> List[bs.Tag]:
+        """
+        Extract links from the HTML content.
 
+        Args:
+            html (bs): Beautiful Soup object containing the HTML content.
+
+        Returns:
+            List[bs.Tag]: A list of Beautiful Soup Tag objects.
+        """
+        table = html.find_all("td", attrs={"width": "100%"})[1].find_all("a", {"href": re.compile(r"&unidade=(\d+)")}) # TODO possivel IndexError out of range
+        return table
 
 def get_login(username=None,password=None,count=0) -> int:
     if username is None: username= input("Nome de utilizador: ")
