@@ -609,28 +609,6 @@ def parse_courses(year: int, user: int):
     soup = bs(get_html(url), 'html.parser') #TODO quando o servidor falha a meio dá IndexError out of range
     return CourseList(soup)
 
-def search_files_in_category(category: str, index: CatCount, course: Course, full_path: Folder):
-    """
-    Search for files in a specific category and download them if needed.
-
-    Parameters:
-        category (str): The category of files to search for.
-        index (CatCount): The index of document categories.
-        course (Course): The course for which to search documents.
-        full_path (Folder): The full path to the directory where files should be downloaded.
-    """
-    try:
-        print(f"> A procurar {category}...")
-        doc_type = index.get_catID(category)
-        table = parse_docs(course.year,course.semester_type, course.semester, course.ID, doc_type)
-        for file in table:
-            folder = full_path.join(category)
-            get_file(file,folder)
-    except Exception as ex:
-        log.error(f'Erro a procurar {category} de {course}: {str(ex)}')
-        pass
-
-
 def download_to_file(filepath: str, url: str, file_size=0, file_mtime=None): #TODO refactor function with ClipFile and change file time
     """
     Download a file from a given URL to a specified filepath.
@@ -697,10 +675,10 @@ def load_cache(folder: Folder) -> dict:
     except FileNotFoundError:
         return None
 
-def parse_cache(full_path: Folder, index: CatCount, coursename: str):
+def parse_cache(full_path: Folder, index: CatCount, coursename: str): #TODO force refresh cache argument
     """
     Loads a cached file with the CatCount data from the previous scrape and updates it.
-    Compares it to the current CatCount dict (index)
+    Compares it to the current CatCount dict (index).
     Returns the differences.
 
     Parameters:
@@ -710,13 +688,13 @@ def parse_cache(full_path: Folder, index: CatCount, coursename: str):
     """
     cache = load_cache(full_path) # loads cache
     index.store_cache(full_path) # overwrites previous cache, updating it
+    cachediff = index.copy()
 
     if cache is None: #check difference between cached count and scraped count
         log.info(f"Não foi encontrada contagem em cache para {coursename}. A criar...")
-        cachediff = index.keys()
     else:
         log.debug(f"Contagem em cache para {coursename}: {cache}")
-        cachediff = [ key for key in index.keys() if key not in cache or index[key] != cache[key] ]
+        [ cachediff.pop(key) for key in index.keys() if key in cache and index[key] == cache[key] ]
 
     if not cachediff: log.debug(f"Sem diferenças para {coursename} em relação à contagem em cache.")
     else: log.debug(f"Categorias de {coursename} com contagem diferente desde a última actualização: {cachediff}")
@@ -739,22 +717,47 @@ def main(path: str = os.getcwd()):
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
         for course in courses:
-            print(f"A procurar documentos de {course.name}...")
-            full_path = path.join(course.year)
+            pool.submit(search_cats_in_course,path, course, pool)
 
-            index = parse_index(course.year, course.semester_type, course.semester, course.ID)
+def search_cats_in_course(path, course, pool):
+    print(f"A procurar documentos de {course.name}...")
+    full_path = path.join(course.year)
 
-            if not index: #skips creating directory if there are no documents
-                log.info(f"Não foram encontrados documentos em {course.name}.")
-            else:
-                log.debug(f"Contagem para {course.name}: {index}")
-                full_semester = course.semester+course.semester_type.upper()
-                full_path = full_path.join(full_semester).join(course.name)
+    index = parse_index(course.year, course.semester_type, course.semester, course.ID)
 
-                cachediff = parse_cache(full_path, index, course.name)
+    if not index: #skips creating directory if there are no documents
+        log.info(f"Não foram encontrados documentos em {course.name}.")
+    else:
+        log.debug(f"Contagem para {course.name}: {index}")
+        full_semester = course.semester+course.semester_type.upper()
+        full_path = full_path.join(full_semester).join(course.name)
+
+        cachediff = parse_cache(full_path, index, course.name)
+        log.debug(cachediff)
                 
-                for category in cachediff:
-                    pool.submit(search_files_in_category,category,index,course,full_path)
+        for category,count in cachediff:
+            log.debug(f"TESTE {category} {course.name}")
+            pool.submit(search_files_in_category,category,index.get_catID(category),course,full_path)
+
+def search_files_in_category(category: str, catID: str, course: Course, full_path: Folder):
+    """
+    Search for files in a specific category and download them if needed.
+
+    Parameters:
+        category (str): The category of files to search for.
+        catID (str): The ID of respective category.
+        course (Course): The course for which to search documents.
+        full_path (Folder): The full path to the directory where files should be downloaded.
+    """
+    try:
+        print(f"> A procurar {category}...")
+        table = parse_docs(course.year,course.semester_type, course.semester, course.ID, catID)
+        for file in table:
+            folder = full_path.join(category)
+            get_file(file,folder)
+    except Exception as ex:
+        log.error(f'Erro a procurar {category} de {course}: {str(ex)}')
+        pass
 
 if __name__ == "__main__":
     typer.run(main)
