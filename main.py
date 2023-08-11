@@ -697,24 +697,29 @@ def load_cache(folder: Folder) -> dict:
     except FileNotFoundError:
         return None
 
-def parse_cache(course, full_path, index):
+def parse_cache(full_path: Folder, index: CatCount, coursename: str):
     """
     Loads a cached file with the CatCount data from the previous scrape and updates it.
     Compares it to the current CatCount dict (index)
     Returns the differences.
+
+    Parameters:
+        full_path (Folder): The path to the folder where cache is stored.
+        index (CatCount): The fresh scraped data.
+        coursename (str): The course's name.
     """
     cache = load_cache(full_path) # loads cache
     index.store_cache(full_path) # overwrites previous cache, updating it
 
     if cache is None: #check difference between cached count and scraped count
-        log.info(f"Não foi encontrada contagem em cache para {course.name}. A criar...")
+        log.info(f"Não foi encontrada contagem em cache para {coursename}. A criar...")
         cachediff = index.keys()
     else:
-        log.debug(f"Contagem em cache para {course.name}: {cache}")
+        log.debug(f"Contagem em cache para {coursename}: {cache}")
         cachediff = [ key for key in index.keys() if key not in cache or index[key] != cache[key] ]
 
-    if not cachediff: log.debug(f"Sem diferenças para {course.name} em relação à contagem em cache.")
-    else: log.debug(f"Categorias de {course.name} com contagem diferente desde a última actualização: {cachediff}")
+    if not cachediff: log.debug(f"Sem diferenças para {coursename} em relação à contagem em cache.")
+    else: log.debug(f"Categorias de {coursename} com contagem diferente desde a última actualização: {cachediff}")
     return cachediff
 
 def main(path: str = os.getcwd()):
@@ -746,7 +751,7 @@ def main(path: str = os.getcwd()):
                 full_semester = course.semester+course.semester_type.upper()
                 full_path = full_path.join(full_semester).join(course.name)
 
-                cachediff = parse_cache(course, full_path, index)
+                cachediff = parse_cache(full_path, index, course.name)
                 
                 for category in cachediff:
                     pool.submit(search_files_in_category,category,index,course,full_path)
