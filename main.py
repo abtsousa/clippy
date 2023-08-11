@@ -559,9 +559,9 @@ def parse_index(year: int, semester_type: str, semester: int, course: int):
     soup = bs(get_html(url), 'html.parser')  
     return CatCount(soup)
 
-def parse_docs(year: int, semester_type: str, semester: int, course: int, doc_type: str):
+def parse_docs(year: int, semester_type: str, semester: int, course: int, category: str):
     """
-    Parse a list of documents for a specific course and document type in a semester.
+    Parse a list of documents for a specific course and document category in a semester.
     Returns an array of ClipFile objects, one for each document.
 
     Parameters:
@@ -569,12 +569,12 @@ def parse_docs(year: int, semester_type: str, semester: int, course: int, doc_ty
         semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
         semester (int): The semester number.
         course (int): The course ID.
-        doc_type (str): The type of document.
+        category (str): The category of document.
 
     Returns:
         FilesList: An array of ClipFile objects.
     """
-    url = get_URL_FileList(year,semester_type,semester,course,doc_type)
+    url = get_URL_FileList(year,semester_type,semester,course,category)
     soup = bs(get_html(url), 'html.parser')  
     return FilesList(soup)
 
