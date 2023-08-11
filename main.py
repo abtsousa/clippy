@@ -675,7 +675,7 @@ def load_cache(folder: Folder) -> dict:
     except FileNotFoundError:
         return None
 
-def parse_cache(full_path: Folder, index: CatCount, coursename: str): #TODO force refresh cache argument
+def parse_cache(full_path: Folder, index: CatCount, coursename: str):
     """
     Loads a cached file with the CatCount data from the previous scrape and updates it.
     Compares it to the current CatCount dict (index).
@@ -686,18 +686,23 @@ def parse_cache(full_path: Folder, index: CatCount, coursename: str): #TODO forc
         index (CatCount): The fresh scraped data.
         coursename (str): The course's name.
     """
-    cache = load_cache(full_path) # loads cache
-    index.store_cache(full_path) # overwrites previous cache, updating it
-    cachediff = index.copy()
+    cache = load_cache(full_path)  # loads cache
+    cachediff = {}
 
-    if cache is None: #check difference between cached count and scraped count
+    if cache is None:  # check difference between cached count and scraped count
         log.info(f"Não foi encontrada contagem em cache para {coursename}. A criar...")
+        cachediff = index
     else:
         log.debug(f"Contagem em cache para {coursename}: {cache}")
-        [ cachediff.pop(key) for key in index.keys() if key in cache and index[key] == cache[key] ]
+        cachediff = {key: index[key] for key in index.keys() if key not in cache or index[key] != cache[key]}
 
-    if not cachediff: log.debug(f"Sem diferenças para {coursename} em relação à contagem em cache.")
-    else: log.debug(f"Categorias de {coursename} com contagem diferente desde a última actualização: {cachediff}")
+    if not cachediff:
+        log.debug(f"Sem diferenças para {coursename} em relação à contagem em cache.")
+    else:
+        log.debug(f"Categorias de {coursename} com contagem diferente desde a última atualização: {cachediff}")
+        # Update cache only if there are differences
+        index.store_cache(full_path)
+
     return cachediff
 
 def main(path: str = os.getcwd()):
@@ -717,9 +722,9 @@ def main(path: str = os.getcwd()):
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
         for course in courses:
-            pool.submit(search_cats_in_course,path, course, pool)
+            pool.submit(search_cats_in_course,path, course) #TODO nested submits don't work. I wanted to pass pool as argument to add multithread to this
 
-def search_cats_in_course(path, course, pool):
+def search_cats_in_course(path, course):
     print(f"A procurar documentos de {course.name}...")
     full_path = path.join(course.year)
 
@@ -735,9 +740,8 @@ def search_cats_in_course(path, course, pool):
         cachediff = parse_cache(full_path, index, course.name)
         log.debug(cachediff)
                 
-        for category,count in cachediff:
-            log.debug(f"TESTE {category} {course.name}")
-            pool.submit(search_files_in_category,category,index.get_catID(category),course,full_path)
+        for category,count in cachediff.items():
+            search_files_in_category(category,index.get_catID(category),course,full_path)
 
 def search_files_in_category(category: str, catID: str, course: Course, full_path: Folder):
     """
@@ -750,7 +754,7 @@ def search_files_in_category(category: str, catID: str, course: Course, full_pat
         full_path (Folder): The full path to the directory where files should be downloaded.
     """
     try:
-        print(f"> A procurar {category}...")
+        print(f"> A procurar {category} de {course.name}...")
         table = parse_docs(course.year,course.semester_type, course.semester, course.ID, catID)
         for file in table:
             folder = full_path.join(category)
