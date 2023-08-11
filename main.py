@@ -3,6 +3,9 @@ import requests, getpass, os, re
 import logging as log
 import pandas as pd
 import concurrent.futures
+import typer
+import json
+from rich import print
 from requests.adapters import HTTPAdapter
 from datetime import datetime
 from bs4 import BeautifulSoup as bs
@@ -47,7 +50,7 @@ session.mount("http://", adapter)
 domain='https://clip.fct.unl.pt'
 
 # Logging
-log.basicConfig(format="[%(levelname)s] %(message)s", level=log.WARNING)
+log.basicConfig(format="[%(levelname)s] %(message)s", level=log.DEBUG)
 
 class LoginError(Exception):
     """
@@ -125,7 +128,7 @@ class Folder(str):
         if not os.path.isfile(fullpath):
             raise FileNotFoundError(f"O ficheiro {filename} não foi encontrado na pasta {self}.")
         return fullpath
-
+    
 class ClipFile:
     """
     Represents a file in CLIP, and its associated information.
@@ -344,6 +347,19 @@ class CatCount(dict):
             "Outros": "xot",
         }
         return ID_dict[category]
+    
+    def store_cache(self, folder: Folder):
+        """
+        Creates a cache JSON file that stores a CatCount dictionary.
+        
+        Args:
+            count (dict): A CatCount dictionary that stores a file count.
+        """
+        cache = os.path.join(folder,".cache.json")
+        with open(cache, 'w') as json_file:
+            json.dump(self, json_file)
+
+
 
 class Course:
     """
@@ -664,15 +680,44 @@ def get_file(file: ClipFile, path: Folder):
     file_path = os.path.join(path,file.name)
     match file.is_synced(path):        
         case True:
-            log.info(f"Encontrado {file.name} na pasta {path}, a saltar...")
+            log.info(f"Encontrado {file.name} na pasta '{path}', a saltar...")
         case False:
-            print(f"O ficheiro {file_path} está desactualizado, a transferir...")
+            print(f"O ficheiro '{file_path}' está desactualizado, a transferir...")
             download_to_file(os.path.join(path,file.name),file.link,file.size,file.mtime)
         case None:
-            print(f"A transferir {file_path}...")
+            print(f"A transferir '{file_path}'...")
             download_to_file(os.path.join(path,file.name),file.link,file.size,file.mtime)
 
-def main():
+def load_cache(folder: Folder) -> dict:
+    cache = os.path.join(folder,".cache.json")
+    try:
+        with open(cache, 'r') as json_file:
+            dict = json.load(json_file)
+        return dict
+    except FileNotFoundError:
+        return None
+
+def parse_cache(course, full_path, index):
+    """
+    Loads a cached file with the CatCount data from the previous scrape and updates it.
+    Compares it to the current CatCount dict (index)
+    Returns the differences.
+    """
+    cache = load_cache(full_path) # loads cache
+    index.store_cache(full_path) # overwrites previous cache, updating it
+
+    if cache is None: #check difference between cached count and scraped count
+        log.info(f"Não foi encontrada contagem em cache para {course.name}. A criar...")
+        cachediff = index.keys()
+    else:
+        log.debug(f"Contagem em cache para {course.name}: {cache}")
+        cachediff = [ key for key in index.keys() if key not in cache or index[key] != cache[key] ]
+
+    if not cachediff: log.debug(f"Sem diferenças para {course.name} em relação à contagem em cache.")
+    else: log.debug(f"Categorias de {course.name} com contagem diferente desde a última actualização: {cachediff}")
+    return cachediff
+
+def main(path: str = os.getcwd()):
     valid_login = False
     while not valid_login:
         try:
@@ -681,7 +726,7 @@ def main():
         except LoginError:
             continue
     
-    path = Folder(os.getcwd())
+    path = Folder(path)
     year = 2023
 
     courses = parse_courses(year,user)
@@ -695,13 +740,16 @@ def main():
             index = parse_index(course.year, course.semester_type, course.semester, course.ID)
 
             if not index: #skips creating directory if there are no documents
-                log.info(f"Não foram encontrados documentos em {course.name}")
+                log.info(f"Não foram encontrados documentos em {course.name}.")
             else:
+                log.debug(f"Contagem para {course.name}: {index}")
                 full_semester = course.semester+course.semester_type.upper()
                 full_path = full_path.join(full_semester).join(course.name)
-            
-                for category,count in index.items():
+
+                cachediff = parse_cache(course, full_path, index)
+                
+                for category in cachediff:
                     pool.submit(search_files_in_category,category,index,course,full_path)
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)
