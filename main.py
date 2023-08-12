@@ -10,7 +10,6 @@ import config
 
 # Local modules
 from modules.LoginError import LoginError
-from modules.Folder import Folder
 from modules.Course import Course
 
 # Local functions
@@ -56,7 +55,7 @@ __email__ = "ab.sousa@campus.fct.unl.pt"
 __version__ = "0.9b"
 
 def main(path: Path = Path.cwd()):
-    path = get_path(path)
+    check_path(path)
     valid_login = False
     while not valid_login:
         try:
@@ -72,9 +71,9 @@ def main(path: Path = Path.cwd()):
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
         for course in courses:
-            pool.submit(search_cats_in_course,path, course) #TODO nested submits don't work. I wanted to pass pool as argument to add multithread to this
+            pool.submit(search_cats_in_course,path,course) #TODO nested submits don't work. I wanted to pass pool as argument to add multithread to this
 
-def get_path(path: Path):
+def check_path(path: Path):
     if not path.exists():
         char = input(f"A directoria {path} não existe. Criá-la? (S/n) ")
         match char:
@@ -87,9 +86,9 @@ def get_path(path: Path):
         #TODO check for config file in directory?
         #TODO default directory input instead of cwd?
 
-def search_cats_in_course(path, course):
+def search_cats_in_course(path: Path, course: Course):
     print(f"A procurar documentos de {course.name}...")
-    full_path = path.join(course.year)
+    full_path = path / course.year
 
     index = parse_index(course.year, course.semester_type, course.semester, course.ID)
 
@@ -98,15 +97,15 @@ def search_cats_in_course(path, course):
     else:
         log.debug(f"Contagem para {course.name}: {index}")
         full_semester = course.semester+course.semester_type.upper()
-        full_path = full_path.join(full_semester).join(course.name)
+        full_path = full_path / full_semester / course.name
 
         cachediff = parse_cache(full_path, index, course.name)
         log.debug(cachediff)
-                
+        
         for category,count in cachediff.items():
             search_files_in_category(category,index.get_catID(category),course,full_path)
 
-def search_files_in_category(category: str, catID: str, course: Course, full_path: Folder):
+def search_files_in_category(category: str, catID: str, course: Course, full_path: Path):
     """
     Search for files in a specific category and download them if needed.
 
@@ -114,13 +113,14 @@ def search_files_in_category(category: str, catID: str, course: Course, full_pat
         category (str): The category of files to search for.
         catID (str): The ID of respective category.
         course (Course): The course for which to search documents.
-        full_path (Folder): The full path to the directory where files should be downloaded.
+        full_path (Path): The full path to the directory where files should be downloaded.
     """
     try:
         print(f"> A procurar {category} de {course.name}...")
         table = parse_docs(course.year,course.semester_type, course.semester, course.ID, catID)
         for file in table:
-            folder = full_path.join(category)
+            folder = full_path / category
+            log.debug(f"A procurar {file} na pasta {folder}...")
             get_file(file,folder)
     except Exception as ex:
         log.error(f'Erro a procurar {category} de {course}: {str(ex)}')

@@ -1,8 +1,7 @@
 from datetime import datetime
+from pathlib import Path
 import os
 import pandas as pd
-
-from modules.Folder import Folder
 
 #Config
 import config
@@ -22,13 +21,13 @@ class ClipFile:
         teacher (str): The name of the teacher who uploaded the file.
 
     Methods:
-        is_synced(path: Folder) -> bool, None:
+        is_synced(path: Path) -> bool, None:
             Check if the file is synchronized with a local path.
 
     Usage:
         row_data = pd.Series(...)  # Contains data for the file
         file = ClipFile(row_data)  # Create an instance of the ClipFile class
-        folder = Folder(...)        # Create an instance of the Folder class
+        folder = Path(...)        # Create an instance of the Path class
         
         synced = file.is_synced(folder)  # Check if clip file is synchronized with the local folder
 
@@ -56,13 +55,12 @@ class ClipFile:
         """
         return f"{self.name} {self.link} {self.mtime} {self.size} {self.teacher}"
     
-    def is_synced(self, path: Folder):
+    def is_synced(self, path: Path):
         """
         Check if the file is synchronized with a local path.
 
         Args:
-            path (Folder): An instance of the Folder class representing the
-                          local path where the file is expected to exist.
+            path (Path): local path where the file is expected to exist.
 
         Returns:
             True if the file is synchronized (up to date).
@@ -70,6 +68,6 @@ class ClipFile:
             None if the file does not exist at the specified path.
         """
         try:
-            return (datetime.fromtimestamp(os.path.getmtime(path.get_filepath(self.name))) >= self.mtime)
+            return (datetime.fromtimestamp(os.path.getmtime(path / self.name)) >= self.mtime)
         except FileNotFoundError:
             return None

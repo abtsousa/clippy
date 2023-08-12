@@ -1,19 +1,21 @@
 from tqdm import tqdm
+from pathlib import Path
+from rich import print
 import logging as log
 import os
+import requests
 
 from modules.ClipFile import ClipFile
-from modules.Folder import Folder
 
 #Config
 import config
 
-def download_to_file(filepath: str, url: str, file_size=0, file_mtime=None): #TODO refactor function with ClipFile and change file time
+def download_to_file(filepath: Path, url: str, file_size=0, file_mtime=None): #TODO refactor function with ClipFile and change file time
     """
     Download a file from a given URL to a specified filepath.
 
     Parameters:
-        filepath (str): The path where the downloaded file will be saved.
+        filepath (Path): The path where the downloaded file will be saved.
         url (str): The URL of the file to download.
         file_size (int, optional): The expected size of the file in bytes. Defaults to 0.
         file_mtime (datetime.datetime, optional): The desired modification time for the downloaded file. Defaults to None.
@@ -44,23 +46,23 @@ def download_to_file(filepath: str, url: str, file_size=0, file_mtime=None): #TO
         pass
     # print(soup.find("td", class_="barra_de_escolhas"})) # get left sidebar TODO parse number of downloads
 
-def get_file(file: ClipFile, path: Folder):
+def get_file(file: ClipFile, path: Path):
     """
     Search for a local file.
     Calls download_to_file() to (re)download it if it's older or not found.
 
     Parameters:
         file (ClipFile): The file to download.
-        path (Folder): The path where the file should be saved.
+        path (Path): The path where the file should be saved.
     """
     log.debug(f"{file} {file.is_synced(path)}")
-    file_path = os.path.join(path,file.name)
+    file_path = path / file.name
     match file.is_synced(path):        
         case True:
             log.info(f"Encontrado {file.name} na pasta '{path}', a saltar...")
         case False:
             print(f"O ficheiro '{file_path}' está desactualizado, a transferir...")
-            download_to_file(os.path.join(path,file.name),file.link,file.size,file.mtime)
+            download_to_file(path / file.name,file.link,file.size,file.mtime)
         case None:
             print(f"A transferir '{file_path}'...")
-            download_to_file(os.path.join(path,file.name),file.link,file.size,file.mtime)
+            download_to_file(path / file.name,file.link,file.size,file.mtime)

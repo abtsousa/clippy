@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup as bs
+import logging as log
 from get_URL import get_URL_CourseList, get_URL_FileList, get_URL_Index
 from get_html import get_html
 from modules.CatCount import CatCount

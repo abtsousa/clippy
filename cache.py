@@ -1,24 +1,25 @@
-import os, json
+import json
 import logging as log
-from modules.Folder import Folder
+from pathlib import Path
+
 from modules.CatCount import CatCount
 
 #Config
-import config
+import config # noqa: F401
 
-def store_cache(dict: CatCount, folder: Folder):
+def store_cache(dict: CatCount, folder: Path):
     """
     Creates a cache JSON file that stores a CatCount dictionary.
     
     Args:
         count (dict): A CatCount dictionary that stores a file count.
     """
-    cache = os.path.join(folder,".cache.json")
+    cache = folder / ".cache.json"
     with open(cache, 'w') as json_file:
         json.dump(dict, json_file)
 
-def load_cache(folder: Folder) -> dict:
-    cache = os.path.join(folder,".cache.json")
+def load_cache(folder: Path) -> dict:
+    cache = folder / ".cache.json"
     try:
         with open(cache, 'r') as json_file:
             dict = json.load(json_file)
@@ -26,14 +27,14 @@ def load_cache(folder: Folder) -> dict:
     except FileNotFoundError:
         return None
 
-def parse_cache(full_path: Folder, index: CatCount, coursename: str):
+def parse_cache(full_path: Path, index: CatCount, coursename: str):
     """
     Loads a cached file with the CatCount data from the previous scrape and updates it.
     Compares it to the current CatCount dict (index).
     Returns the differences.
 
     Parameters:
-        full_path (Folder): The path to the folder where cache is stored.
+        full_path (Path): The path to the folder where cache is stored.
         index (CatCount): The fresh scraped data.
         coursename (str): The course's name.
     """
