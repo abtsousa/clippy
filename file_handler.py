@@ -1,3 +1,4 @@
+from datetime import datetime
 from tqdm import tqdm
 from pathlib import Path
 from rich import print
@@ -46,7 +47,7 @@ def download_to_file(filepath: Path, url: str, file_size=0, file_mtime=None): #T
         pass
     # print(soup.find("td", class_="barra_de_escolhas"})) # get left sidebar TODO parse number of downloads
 
-def get_file(file: ClipFile, path: Path):
+def get_file(file: ClipFile, path: Path) -> (Path, str, str, datetime):
     """
     Search for a local file.
     Calls download_to_file() to (re)download it if it's older or not found.
@@ -60,9 +61,12 @@ def get_file(file: ClipFile, path: Path):
     match file.is_synced(path):        
         case True:
             log.info(f"Encontrado {file.name} na pasta '{path}', a saltar...")
+            return None
         case False:
             print(f"O ficheiro '{file_path}' está desactualizado, a transferir...")
-            download_to_file(path / file.name,file.link,file.size,file.mtime)
+            #download_to_file(path / file.name,file.link,file.size,file.mtime)
+            return (path / file.name,file.link,file.size,file.mtime)
         case None:
             print(f"A transferir '{file_path}'...")
-            download_to_file(path / file.name,file.link,file.size,file.mtime)
+            #download_to_file(path / file.name,file.link,file.size,file.mtime)
+            return (path / file.name,file.link,file.size,file.mtime)

@@ -44,4 +44,4 @@ class Course:
         Returns:
             str: A string representation of the Course instance.
         """
-        return f"{self.name} {self.ID} {self.year} {self.semester}{self.semester_type.upper()}"
+        return self.name

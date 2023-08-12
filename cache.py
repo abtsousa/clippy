@@ -15,12 +15,13 @@ def store_cache(dict: CatCount, folder: Path):
         count (dict): A CatCount dictionary that stores a file count.
     """
     cache = folder / ".cache.json"
+    if not cache.exists(): Path.touch(cache)
     with open(cache, 'w') as json_file:
         json.dump(dict, json_file)
 
 def load_cache(folder: Path) -> dict:
-    cache = folder / ".cache.json"
     try:
+        cache = folder / ".cache.json"
         with open(cache, 'r') as json_file:
             dict = json.load(json_file)
         return dict
