@@ -42,9 +42,6 @@ __maintainer__ = "Afonso Bras Sousa"
 __email__ = "ab.sousa@campus.fct.unl.pt"
 __version__ = "0.9b"
 
-# Logging
-log.basicConfig(format="[%(levelname)s] %(message)s", level=log.WARNING)
-
 def main(path: str = os.getcwd()):
     valid_login = False
     while not valid_login:

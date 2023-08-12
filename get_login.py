@@ -1,7 +1,7 @@
 import getpass, re, requests
 import logging as log
 from requests import Session
-
+from time import sleep
 from modules.LoginError import LoginError
 
 #Config
@@ -30,7 +30,7 @@ def get_login(username: str = None,password: str = None) -> int:
     }
 
     try:
-        response = config.session.post('https://clip.fct.unl.pt/', data=login_data, timeout=5)
+        response = config.session.post('https://clip.fct.unl.pt/', data=login_data, timeout=10)
         response.raise_for_status()  # Raise an exception for HTTP errors
         if "Autenticação inválida" in response.text:
             raise LoginError("Autenticação falhou.")
@@ -45,6 +45,7 @@ def get_login(username: str = None,password: str = None) -> int:
         if count > 3: raise LoginError("Demasiadas tentativas de conexão. Tente novamente mais tarde.")
         log.warning(f"Ligação ao servidor excedeu o tempo, a tentar novamente... ({count}/3)")
         config.session_mount(reset=True)
+        sleep(1)
         get_login(username,password)
     except requests.exceptions.RequestException as e:
         raise LoginError(f"Erro de conexão durante o login: {e}")

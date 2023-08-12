@@ -51,8 +51,9 @@ class CourseList(list):
             An array of links.
         """
         try:
+            log.debug(str(html))
             table = html.find_all("td", attrs={"width": "100%"})[1].find_all("a", {"href": re.compile(r"&unidade=(\d+)")}) # TODO possivel IndexError out of range
             return table
-        except Exception as error: #TODO DEBUG
-            print(html.text)
+        except IndexError as error: #TODO DEBUG
+            log.error(f"Falha crítica: o servidor devolveu o seguinte conteúdo HTML: {html}")
             exit()

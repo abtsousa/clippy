@@ -3,6 +3,9 @@ from urllib3.util import Retry
 from requests import Session
 import logging as log
 
+# Logging
+log.basicConfig(format="[%(levelname)s] %(message)s", level=log.DEBUG)
+
 def session_mount(reset:bool = False):
     global session
     if not globals().get('_session_initialized') or reset:
