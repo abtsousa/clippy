@@ -2,7 +2,7 @@
 from datetime import datetime
 from pathlib import Path
 import logging as log
-import concurrent.futures
+import concurrent.futures as cf
 import typer
 from rich import print
 
@@ -81,43 +81,34 @@ def main(path: Path = Path.cwd()):
     create_folder_structure(path,courses)
     
     # 3/5 (Multithreaded) Load each unit's index and compare it to cached file if it exists
-    print_progress(3,"A verificar se há ficheiros novos...")
-    subcats = []
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-        futures = {pool.submit(search_cats_in_course, path, course): course for course in courses} # set future : course dict
-        
-        for future in concurrent.futures.as_completed(futures):
-            course = futures[future] # value
-            try:
-                subcat = future.result()  # Get the result from the future
-                if subcat is not None:
-                    subcats.extend(subcat)
-            except Exception as e:
-                log.error(f"Erro a processar {course}: {e}")
-
+    print_progress(3, "A verificar se há ficheiros novos...")
+    subcats = threadpool_execute(search_cats_in_course, [(path, course) for course in courses])
     log.debug(f"Lista de subcategorias a procurar: {subcats}")
 
     # 4/5 (Multithreaded) Load each subcategory's table and compare it to the local folder
-    print_progress(4,"A obter URLs dos ficheiros a transferir...")
-    files = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-        futures = {pool.submit(search_files_in_category,*subcat) : subcat for subcat in subcats}
-        
-        for future in concurrent.futures.as_completed(futures):
-            subcat = futures[future] # value
-            try:
-                file = future.result()  # Get the result from the future
-                if file is not None:
-                    files.extend(subcat)
-            except Exception as e:
-                log.error(f"Erro a processar {subcat[0]}: {e}")
-
+    print_progress(4, "A obter URLs dos ficheiros a transferir...")
+    files = threadpool_execute(search_files_in_category, subcats)
     log.debug(f"Lista de ficheiros a transferir: {files}")
 
 def print_progress(progress: int, msg: str, max: int = 5):
     bar = progress*"▰"+(max-progress)*"▱"
     print(f"{bar} {msg}")
+
+def threadpool_execute(worker_function, items):
+    results = []
+    with cf.ThreadPoolExecutor(max_workers=4) as pool:
+        futures = {pool.submit(worker_function, *args): args for args in items}
+        
+        for future in cf.as_completed(futures):
+            args = futures[future]
+            try:
+                result = future.result()  # Get the result from the future
+                if result is not None:
+                    results.extend(result)
+            except Exception as e:
+                log.error(f"Error processing {args}: {e}")
+    
+    return results
 
 def check_path(path: Path):
     if not path.exists():
