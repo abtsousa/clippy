@@ -1,5 +1,5 @@
 #Import
-import os
+from pathlib import Path
 import logging as log
 import concurrent.futures
 import typer
@@ -31,6 +31,8 @@ Clipper successfully navigates the site in order to scrape it, and compares it w
 with a similar structure, syncing it to the server.
 """
 
+# TODO: replace Folder module with pathlib
+
 # TODO: Proper multithread management 
 # 1) Scrape units list
 # 2) Create basic unit folder structure
@@ -53,7 +55,8 @@ __maintainer__ = "Afonso Bras Sousa"
 __email__ = "ab.sousa@campus.fct.unl.pt"
 __version__ = "0.9b"
 
-def main(path: str = os.getcwd()):
+def main(path: Path = Path.cwd()):
+    path = get_path(path)
     valid_login = False
     while not valid_login:
         try:
@@ -62,7 +65,6 @@ def main(path: str = os.getcwd()):
         except LoginError:
             continue
     
-    path = Folder(path)
     year = 2023
 
     courses = parse_courses(year,user)
@@ -71,6 +73,19 @@ def main(path: str = os.getcwd()):
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
         for course in courses:
             pool.submit(search_cats_in_course,path, course) #TODO nested submits don't work. I wanted to pass pool as argument to add multithread to this
+
+def get_path(path: Path):
+    if not path.exists():
+        char = input(f"A directoria {path} não existe. Criá-la? (S/n) ")
+        match char:
+            case 's' | 'S' | 'y' | 'Y' | '\r':
+                path.mkdir(parents=True, exist_ok=True)
+                log.info("A criar directoria {path}.")
+            case _:
+                print("A abortar programa... Adeus!")
+                exit()
+        #TODO check for config file in directory?
+        #TODO default directory input instead of cwd?
 
 def search_cats_in_course(path, course):
     print(f"A procurar documentos de {course.name}...")
