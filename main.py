@@ -31,6 +31,17 @@ Clipper successfully navigates the site in order to scrape it, and compares it w
 with a similar structure, syncing it to the server.
 """
 
+# TODO: Proper multithread management 
+# 1) Scrape units list
+# 2) Create basic unit folder structure
+# 3) (Multithreaded) Load each unit's index and compare it to cached file if it exists
+# 4) (Multithreaded) Load each subcategory's table and compare it to the local folder
+# 5) (Multithreaded) Download missing files
+
+# TODO: One-line progress bar?
+
+# TODO: Warning if file count in folder is less than cache value
+
 # Dev comment:
 # The code mimics the site's structure, as follows:
 #       CLIP: Academic year   >> Course >> Document subcategory >> Files list >>   File

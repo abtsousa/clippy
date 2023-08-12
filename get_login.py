@@ -44,7 +44,7 @@ def get_login(username: str = None,password: str = None) -> int:
         count += 1
         if count > 3: raise LoginError("Demasiadas tentativas de conexão. Tente novamente mais tarde.")
         log.warning(f"Ligação ao servidor excedeu o tempo, a tentar novamente... ({count}/3)")
-        config.session_mount(reset=True)
+        config.session_mount() # Reset session
         sleep(1)
         get_login(username,password)
     except requests.exceptions.RequestException as e:
