@@ -11,7 +11,7 @@ from modules.ClipFile import ClipFile
 #Config
 import config
 
-def download_to_file(filepath: Path, url: str, file_size=0, file_mtime=None): #TODO refactor function with ClipFile and change file time
+def download_file(filepath: Path, url: str, file_size=0, file_mtime=None): #TODO refactor function with ClipFile and change file time
     """
     Download a file from a given URL to a specified filepath.
 
@@ -27,6 +27,8 @@ def download_to_file(filepath: Path, url: str, file_size=0, file_mtime=None): #T
         chunk_size = 1024
 
         if r.status_code == 200:
+            print(f"A transferir '{filepath}'...")
+            Path.mkdir(filepath.parent,parents=True, exist_ok=True)
             with open(filepath, 'wb+') as f:
                 pbar = tqdm(total=file_size, unit="B", unit_scale=True, unit_divisor=1024)
                 for chunk in r.iter_content(chunk_size=chunk_size):
@@ -43,9 +45,9 @@ def download_to_file(filepath: Path, url: str, file_size=0, file_mtime=None): #T
         else:
             raise requests.HTTPError(f'Código de estado HTTP: {r.status_code}')
     except Exception as ex:
-        log.error(f'Falhou o download de \'{url}\': {str(ex)}')
-        pass
-    # print(soup.find("td", class_="barra_de_escolhas"})) # get left sidebar TODO parse number of downloads
+       log.error(f'Falhou o download de \'{url}\': {str(ex)}')
+       pass
+    #print(soup.find("td", class_="barra_de_escolhas"})) # get left sidebar TODO parse number of downloads
 
 def get_file(file: ClipFile, path: Path) -> (Path, str, str, datetime):
     """
@@ -63,10 +65,9 @@ def get_file(file: ClipFile, path: Path) -> (Path, str, str, datetime):
             log.info(f"Encontrado {file.name} na pasta '{path}', a saltar...")
             return None
         case False:
-            print(f"O ficheiro '{file_path}' está desactualizado, a transferir...")
+            log.warning(f"O ficheiro '{file_path}' está desactualizado e vai ser transferido.")
             #download_to_file(path / file.name,file.link,file.size,file.mtime)
             return (path / file.name,file.link,file.size,file.mtime)
         case None:
-            print(f"A transferir '{file_path}'...")
             #download_to_file(path / file.name,file.link,file.size,file.mtime)
             return (path / file.name,file.link,file.size,file.mtime)

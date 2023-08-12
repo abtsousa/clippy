@@ -8,16 +8,16 @@ from rich import print
 
 #Config
 import config
-from modules.CourseList import CourseList
 
 # Local modules
 from modules.LoginError import LoginError
+from modules.CourseList import CourseList
 from modules.Course import Course
 
 # Local functions
 from get_login import get_login
 from parse import parse_courses, parse_docs, parse_index
-from file_handler import get_file
+from file_handler import get_file, download_file
 from cache import parse_cache
 
 """
@@ -89,6 +89,10 @@ def main(path: Path = Path.cwd()):
     print_progress(4, "A obter URLs dos ficheiros a transferir...")
     files = threadpool_execute(search_files_in_category, subcats)
     log.debug(f"Lista de ficheiros a transferir: {files}")
+    
+    # 5/5 (Multithreaded) Download missing files
+    print_progress(5, "A transferir ficheiros em falta...")
+    _ = threadpool_execute(download_file, files)
 
 def print_progress(progress: int, msg: str, max: int = 5):
     bar = progress*"▰"+(max-progress)*"▱"
@@ -106,7 +110,7 @@ def threadpool_execute(worker_function, items):
                 if result is not None:
                     results.extend(result)
             except Exception as e:
-                log.error(f"Error processing {args}: {e}")
+                log.error(f"Erro a processar {args}: {e}")
     
     return results
 

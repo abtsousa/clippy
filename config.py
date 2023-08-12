@@ -4,7 +4,7 @@ from requests import Session
 import logging as log
 
 # Logging
-log.basicConfig(format="[%(levelname)s] %(message)s", level=log.DEBUG)
+log.basicConfig(format="[%(levelname)s] %(message)s", level=log.WARNING)
 
 def session_mount():
     global session
