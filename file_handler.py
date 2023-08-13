@@ -36,7 +36,7 @@ def download_file(filepath: Path, url: str, file_size=0, file_mtime=None): #TODO
                         downloaded_size += len(chunk)
                         pbar.update(len(chunk))
                         f.write(chunk)
-                pbar.total=downloaded_size
+                pbar.total=downloaded_size #force show 100% if file size overestimated or downloaded too fast
                 pbar.refresh()
             if file_mtime is not None:
                 log.debug("Mod-time do ficheiro: %d", int(os.stat(filepath).st_mtime))
@@ -52,7 +52,7 @@ def download_file(filepath: Path, url: str, file_size=0, file_mtime=None): #TODO
        pass
     #print(soup.find("td", class_="barra_de_escolhas"})) # get left sidebar TODO parse number of downloads
 
-def get_file(file: ClipFile, path: Path) -> (Path, str, str, datetime):
+def get_file(file: ClipFile, path: Path) -> (Path, str, int, datetime):
     """
     Search for a local file.
     Calls download_to_file() to (re)download it if it's older or not found.
@@ -74,7 +74,15 @@ def get_file(file: ClipFile, path: Path) -> (Path, str, str, datetime):
         case None:
             #download_to_file(path / file.name,file.link,file.size,file.mtime)
             return (path / file.name,file.link,file.size,file.mtime)
-        
+
+def count_files_in_subfolders(path: Path) -> dict:
+    result = {}
+    for folder in path.iterdir():
+        if folder.is_dir():
+            file_count = sum(1 for _ in folder.glob('*') if _.is_file() and not _.name.startswith('.'))
+            result[folder.name] = file_count
+    return result
+
 def fixed_string_length(input_string, target_length=30):
     if len(input_string) <= target_length:
         padding_length = target_length - len(input_string)

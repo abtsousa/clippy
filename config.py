@@ -3,6 +3,9 @@ from urllib3.util import Retry
 from requests import Session
 import logging as log
 
+# Multithreading
+MAX_THREADS = 8
+
 # Logging
 log.basicConfig(format="[%(levelname)s] %(message)s", level=log.WARNING)
 

@@ -34,9 +34,7 @@ def commit_cache():
 
 def parse_cache(full_path: Path, index: CatCount, coursename: str):
     """
-    Loads a cached file with the CatCount data from the previous scrape and updates it.
-    Compares it to the current CatCount dict (index).
-    Returns the differences.
+    Loads a cached file with the CatCount data from the previous scrape.
 
     Parameters:
         full_path (Path): The path to the folder where cache is stored.
@@ -48,19 +46,8 @@ def parse_cache(full_path: Path, index: CatCount, coursename: str):
         with open(cache_path, 'r') as json_file:
             cache = json.load(json_file)
     except FileNotFoundError:
-        log.info(f"Não foi encontrada contagem em cache para {coursename}. A criar...")
-        stash_cache(index,full_path)
-        return index
+        log.info(f"Não foi encontrada contagem em cache para {coursename}.")
+        return None
 
     log.debug(f"Contagem em cache para {coursename}: {cache}")
-    
-    cachediff = {key: index[key] for key in index.keys() if key not in cache or index[key] != cache[key]}
-
-    if not cachediff:
-        log.debug(f"Sem diferenças para {coursename} em relação à contagem em cache.")
-    else:
-        log.debug(f"Categorias de {coursename} com contagem diferente desde a última atualização: {cachediff}")
-        # Update cache only if there are differences
-        stash_cache(index,full_path)
-
-    return cachediff
+    return cache

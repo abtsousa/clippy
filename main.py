@@ -16,9 +16,10 @@ from modules.Course import Course
 
 # Local functions
 from get_login import get_login
-from parse import parse_courses, parse_docs, parse_index
-from file_handler import get_file, download_file
-from cache_handler import commit_cache, parse_cache
+from HTML_parser import parse_courses, parse_docs, parse_index
+from file_handler import get_file, download_file, count_files_in_subfolders
+from cache_handler import commit_cache, parse_cache, stash_cache
+from print_progress import print_progress
 
 """
 Clipper
@@ -28,21 +29,13 @@ The program scrapes a user's courses for available downloads and syncs them with
 CLIP's files are organized in subcategories for each academic course like this:
 Academic year >> Course documents >> Document subcategory >> Files list
 
-Clipper successfully navigates the site in order to scrape it, and compares it with a local folder
-with a similar structure, syncing it to the server.
+Clipper successfully navigates the site in order to scrape it, and compares it to a local folder
+with a similar structure, keeping it in sync with the server.
 """
 
-# TODO: Proper multithread management 
-# 1) Scrape units list
-# 2) Create basic unit folder structure
-# 3) (Multithreaded) Load each unit's index and compare it to cached file if it exists
-# 4) (Multithreaded) Load each subcategory's table and compare it to the local folder
-# 5) (Multithreaded) Download missing files
-# Store cache only if it was successful
-
-# TODO: One-line progress bar?
-
-# TODO: Warning if file count in folder is less than cache value
+# TODO save config at the end or --config file or --ignore-config
+# TODO choose year and semester
+# TODO Distribute
 
 # Dev comment:
 # The code mimics the site's structure, as follows:
@@ -60,11 +53,9 @@ def main(path: Path = Path.cwd()):
     check_path(path)
 
     # 0/5 Start login
-    print_progress(0,"A fazer login...")
     valid_login = False
     while not valid_login:
         try:
-
             user = get_login()
             valid_login = True
         except LoginError:
@@ -73,13 +64,10 @@ def main(path: Path = Path.cwd()):
     year = 2023 #TODO config
 
     # 1) Scrape units list
+    print_progress(1,"A procurar unidades curriculares inscritas...")
     courses = parse_courses(year,user)
-    print_progress(1,"Encontradas as seguintes unidades: "+" | ".join(course.name for course in courses) )
+    log.info("Encontradas as seguintes unidades: "+" | ".join(course.name for course in courses) )
 
-    # Create basic unit folder structure
-    # print_progress(2,"A verificar/criar a estrutura de pastas...")
-    #create_folder_structure(path,courses)
-    
     # 2) (Multithreaded) Load each unit's index and compare it to cached file if it exists
     print_progress(2, "A verificar se há ficheiros novos...")
     subcats = threadpool_execute(search_cats_in_course, [(path, course) for course in courses])
@@ -91,35 +79,39 @@ def main(path: Path = Path.cwd()):
     log.debug(f"Lista de ficheiros a transferir: {files}")
     
     # 4) (Multithreaded) Download missing files
-    print_progress(4, "A transferir ficheiros em falta...")
-    _ = threadpool_execute(download_file, files)
+    if len(files) != 0:
+        print_progress(4, "A transferir ficheiros em falta...")
+        _ = threadpool_execute(download_file, files, max_workers=4)
+        print("Todos os ficheiros foram transferidos.")
+    else:
+        print_progress(4, "Não há ficheiros a transferir.")
 
     # 5) Update cache after successful download
-    print()
     print_progress(5, "A actualizar cache...")
     commit_cache()
 
     # 6) Exit with success
     print_progress(6, "Concluído :)")
+    if len(files) != 0:
+        unique_folders = sorted({str(file[0].parent) for file in files})
+        print(f"Transferidos {len(files)} ficheiros para as pastas:")
+        print("\n".join(f"'{folder}'" for folder in unique_folders))
+    else:
+        print("Não foram encontrados ficheiros novos.")
 
-
-def print_progress(progress: int, msg: str, max: int = 6):
-    bar = progress*"▰"+(max-progress)*"▱"
-    print(f"{bar} {msg}")
-
-def threadpool_execute(worker_function, items):
+def threadpool_execute(worker_function, items, max_workers=config.MAX_THREADS):
     results = []
-    with cf.ThreadPoolExecutor(max_workers=4) as pool:
+    with cf.ThreadPoolExecutor(max_workers=max_workers) as pool: 
         futures = {pool.submit(worker_function, *args): args for args in items}
         
         for future in cf.as_completed(futures):
             args = futures[future]
-            #try:
-            result = future.result()  # Get the result from the future
-            if result is not None:
-                results.extend(result)
-            #except Exception as e:
-                #log.error(f"Erro a processar {args}: {e}")
+            try:
+                result = future.result()  # Get the result from the future
+                if result is not None:
+                    results.extend(result)
+            except Exception as e:
+                log.error(f"Erro a processar {args}: {e}")
     
     return results
 
@@ -136,11 +128,8 @@ def check_path(path: Path):
         #TODO check for config file in directory?
         #TODO default directory input instead of cwd?
 
-def create_folder_structure(path: Path, list: CourseList):
-    for course in list:
-        full_path = path / course.year / f"{course.semester}S" / course.name
-        log.debug(f"A criar a pasta {full_path} se não existir...")
-        full_path.mkdir(parents=True, exist_ok=True)
+def dict_compare(dict_a: dict, dict_b: dict):
+    return {key: dict_a[key] for key in dict_a.keys() if key not in dict_b or dict_a[key] > dict_b[key]}
 
 def search_cats_in_course(path: Path, course: Course) -> [(str, str, Course, Path)]:
     print(f"A procurar documentos de {course.name}...")
@@ -157,18 +146,44 @@ def search_cats_in_course(path: Path, course: Course) -> [(str, str, Course, Pat
 
         full_path.mkdir(parents=True, exist_ok=True) # Create folder if it does not exist
 
-        cachediff = parse_cache(full_path, index, course.name)
-        
+        # Cache management
+        cachedict = parse_cache(full_path, index, course.name)
+        cachediff = dict_compare(index, cachedict)
+
         _subcats = []
-        if cachediff is not None:
+        
+        if not cachediff:
+            log.debug(f"Sem diferenças para {course.name} em relação à contagem em cache.")
+        else:
+            log.debug(f"Em cache: {cachedict}")
+            log.debug(f"No servidor: {index}")
+            log.info(f"Categorias de {course.name} com novos ficheiros no servidor desde a última actualização: {cachediff}")
+            # Update cache only if there are differences
+            stash_cache(index,full_path)
+
             for category,count in cachediff.items():
                 _subcats.append((category,index.get_catID(category),course,full_path))
                 #search_files_in_category(category,index.get_catID(category),course,full_path)
         
+        folderdict = count_files_in_subfolders(full_path)
+        folderdiff = dict_compare(cachedict, folderdict)
+
+        if not folderdiff:
+            log.debug(f"Sem diferenças para {course.name} em relação à contagem de ficheiros.")
+        else:
+            log.warning(f"A contagem de ficheiros em {course.name} não coincide com a da última actualização. Quaisquer ficheiros apagados serão transferidos novamente.")
+            log.debug(f"Na pasta: {folderdict}")
+            log.debug(f"Em cache: {cachedict}")
+            log.info(f"Pastas de {course.name} com menos ficheiros que a contagem em cache: {folderdiff}")
+
+            for category,count in folderdiff.items():
+                _subcats.append((category,index.get_catID(category),course,full_path))
+                #search_files_in_category(category,index.get_catID(category),course,full_path)
+
         log.debug(f"Subcategorias de {course.name}: {_subcats}")
         return _subcats
 
-def search_files_in_category(category: str, catID: str, course: Course, full_path: Path) -> [(Path, str, str, datetime)]:
+def search_files_in_category(category: str, catID: str, course: Course, full_path: Path) -> [(Path, str, int, datetime)]:
     """
     Search for files in a specific category and download them if needed.
 
@@ -187,7 +202,7 @@ def search_files_in_category(category: str, catID: str, course: Course, full_pat
             folder = full_path / category
             log.debug(f"A procurar {file} na pasta {folder}...")
             _file = get_file(file,folder)
-            if file is not None:
+            if _file is not None:
                 _files.append(_file)
         
         log.debug(f"Ficheiros de {course} > {category}: {_files}")

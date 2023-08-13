@@ -3,6 +3,7 @@ import logging as log
 from requests import Session
 from time import sleep
 from modules.LoginError import LoginError
+from print_progress import print_progress
 
 #Config
 import config
@@ -21,7 +22,7 @@ def get_login(username: str = None,password: str = None) -> int:
         int: The user's internal ID.
     """
     global count #retry count
-    if username is None: username= input("Nome de utilizador: ")
+    if username is None: username = input("Nome de utilizador: ")
     if password is None: password = getpass.getpass()
     
     login_data = {
@@ -30,6 +31,7 @@ def get_login(username: str = None,password: str = None) -> int:
     }
 
     try:
+        print_progress(0,"A fazer login...")
         response = config.session.post('https://clip.fct.unl.pt/', data=login_data, timeout=10)
         response.raise_for_status()  # Raise an exception for HTTP errors
         if "Autenticação inválida" in response.text:
