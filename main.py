@@ -18,7 +18,7 @@ from modules.Course import Course
 from get_login import get_login
 from parse import parse_courses, parse_docs, parse_index
 from file_handler import get_file, download_file
-from cache import parse_cache
+from cache_handler import parse_cache
 
 """
 Clipper
@@ -78,7 +78,7 @@ def main(path: Path = Path.cwd()):
 
     # 2/5 Create basic unit folder structure
     print_progress(2,"A verificar/criar a estrutura de pastas...")
-    create_folder_structure(path,courses)
+    #create_folder_structure(path,courses)
     
     # 3/5 (Multithreaded) Load each unit's index and compare it to cached file if it exists
     print_progress(3, "A verificar se há ficheiros novos...")

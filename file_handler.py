@@ -25,16 +25,19 @@ def download_file(filepath: Path, url: str, file_size=0, file_mtime=None): #TODO
         r = config.session.get(url, stream=True)
         if file_size==0: file_size=r.headers['Content-Length']
         chunk_size = 1024
+        downloaded_size = 0
 
         if r.status_code == 200:
-            print(f"A transferir '{filepath}'...")
             Path.mkdir(filepath.parent,parents=True, exist_ok=True)
             with open(filepath, 'wb+') as f:
-                pbar = tqdm(total=file_size, unit="B", unit_scale=True, unit_divisor=1024)
+                pbar = tqdm(total=file_size, unit="B", unit_scale=True, unit_divisor=1024, desc=f"A transferir {fixed_string_length(filepath.name,30)}")
                 for chunk in r.iter_content(chunk_size=chunk_size):
                     if chunk:
+                        downloaded_size += len(chunk)
                         pbar.update(len(chunk))
                         f.write(chunk)
+                pbar.total=downloaded_size
+                pbar.refresh()
             if file_mtime is not None:
                 log.debug("Mod-time do ficheiro: %d", int(os.stat(filepath).st_mtime))
                 mtime = file_mtime.timestamp()
@@ -71,3 +74,13 @@ def get_file(file: ClipFile, path: Path) -> (Path, str, str, datetime):
         case None:
             #download_to_file(path / file.name,file.link,file.size,file.mtime)
             return (path / file.name,file.link,file.size,file.mtime)
+        
+def fixed_string_length(input_string, target_length=30):
+    if len(input_string) <= target_length:
+        padding_length = target_length - len(input_string)
+        padded_string = input_string + ' ' * padding_length
+        return padded_string
+    else:
+        truncation_length = target_length - 3  # Account for the '...' part
+        truncated_string = input_string[:truncation_length//2+1] + '...' + input_string[-(truncation_length//2):]
+        return truncated_string
