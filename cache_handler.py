@@ -7,16 +7,30 @@ from modules.CatCount import CatCount
 #Config
 import config # noqa: F401
 
-def store_cache(dict: CatCount, folder: Path):
+cache_stack = []
+
+def stash_cache(dict: CatCount, folder: Path):
     """
-    Creates a cache JSON file that stores a CatCount dictionary.
+    Stores JSON dump operations in an array for later execution with commit_cache().
+    
+    Args:
+        dict (CatCount): A CatCount dictionary that stores a file count.
+        folder (Path): The folder where cache is to be stored
+    """
+    global cache_stack
+    cache_stack.append((folder / ".cache.json", dict))
+
+def commit_cache():
+    """
+    Creates a cache JSON file that stores a CatCount dictionary that was previously stashed with stash_cache().
     
     Args:
         count (dict): A CatCount dictionary that stores a file count.
     """
-    cache = folder / ".cache.json"
-    with open(cache, 'w+') as json_file:
-        json.dump(dict, json_file)
+    global cache_stack
+    for file, dict in cache_stack:
+        with open(file, 'w+') as json_file:
+            json.dump(dict, json_file)
 
 def parse_cache(full_path: Path, index: CatCount, coursename: str):
     """
@@ -35,7 +49,7 @@ def parse_cache(full_path: Path, index: CatCount, coursename: str):
             cache = json.load(json_file)
     except FileNotFoundError:
         log.info(f"Não foi encontrada contagem em cache para {coursename}. A criar...")
-        store_cache(index,full_path)
+        stash_cache(index,full_path)
         return index
 
     log.debug(f"Contagem em cache para {coursename}: {cache}")
@@ -47,6 +61,6 @@ def parse_cache(full_path: Path, index: CatCount, coursename: str):
     else:
         log.debug(f"Categorias de {coursename} com contagem diferente desde a última atualização: {cachediff}")
         # Update cache only if there are differences
-        store_cache(index,full_path)
+        stash_cache(index,full_path)
 
     return cachediff

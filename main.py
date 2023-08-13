@@ -18,7 +18,7 @@ from modules.Course import Course
 from get_login import get_login
 from parse import parse_courses, parse_docs, parse_index
 from file_handler import get_file, download_file
-from cache_handler import parse_cache
+from cache_handler import commit_cache, parse_cache
 
 """
 Clipper
@@ -72,29 +72,38 @@ def main(path: Path = Path.cwd()):
     
     year = 2023 #TODO config
 
-    # 1/5 Scrape units list
+    # 1) Scrape units list
     courses = parse_courses(year,user)
     print_progress(1,"Encontradas as seguintes unidades: "+" | ".join(course.name for course in courses) )
 
-    # 2/5 Create basic unit folder structure
-    print_progress(2,"A verificar/criar a estrutura de pastas...")
+    # Create basic unit folder structure
+    # print_progress(2,"A verificar/criar a estrutura de pastas...")
     #create_folder_structure(path,courses)
     
-    # 3/5 (Multithreaded) Load each unit's index and compare it to cached file if it exists
-    print_progress(3, "A verificar se há ficheiros novos...")
+    # 2) (Multithreaded) Load each unit's index and compare it to cached file if it exists
+    print_progress(2, "A verificar se há ficheiros novos...")
     subcats = threadpool_execute(search_cats_in_course, [(path, course) for course in courses])
     log.debug(f"Lista de subcategorias a procurar: {subcats}")
 
-    # 4/5 (Multithreaded) Load each subcategory's table and compare it to the local folder
-    print_progress(4, "A obter URLs dos ficheiros a transferir...")
+    # 3) (Multithreaded) Load each subcategory's table and compare it to the local folder
+    print_progress(3, "A obter URLs dos ficheiros a transferir...")
     files = threadpool_execute(search_files_in_category, subcats)
     log.debug(f"Lista de ficheiros a transferir: {files}")
     
-    # 5/5 (Multithreaded) Download missing files
-    print_progress(5, "A transferir ficheiros em falta...")
+    # 4) (Multithreaded) Download missing files
+    print_progress(4, "A transferir ficheiros em falta...")
     _ = threadpool_execute(download_file, files)
 
-def print_progress(progress: int, msg: str, max: int = 5):
+    # 5) Update cache after successful download
+    print()
+    print_progress(5, "A actualizar cache...")
+    commit_cache()
+
+    # 6) Exit with success
+    print_progress(6, "Concluído :)")
+
+
+def print_progress(progress: int, msg: str, max: int = 6):
     bar = progress*"▰"+(max-progress)*"▱"
     print(f"{bar} {msg}")
 
@@ -105,12 +114,12 @@ def threadpool_execute(worker_function, items):
         
         for future in cf.as_completed(futures):
             args = futures[future]
-            try:
-                result = future.result()  # Get the result from the future
-                if result is not None:
-                    results.extend(result)
-            except Exception as e:
-                log.error(f"Erro a processar {args}: {e}")
+            #try:
+            result = future.result()  # Get the result from the future
+            if result is not None:
+                results.extend(result)
+            #except Exception as e:
+                #log.error(f"Erro a processar {args}: {e}")
     
     return results
 
@@ -135,7 +144,7 @@ def create_folder_structure(path: Path, list: CourseList):
 
 def search_cats_in_course(path: Path, course: Course) -> [(str, str, Course, Path)]:
     print(f"A procurar documentos de {course.name}...")
-    full_path = path / course.year
+    path = path / course.year
 
     index = parse_index(course.year, course.semester_type, course.semester, course.ID)
 
@@ -144,7 +153,9 @@ def search_cats_in_course(path: Path, course: Course) -> [(str, str, Course, Pat
     else:
         log.debug(f"Contagem para {course.name}: {index}")
         full_semester = course.semester+course.semester_type.upper()
-        full_path = full_path / full_semester / course.name
+        full_path = path / full_semester / course.name
+
+        full_path.mkdir(parents=True, exist_ok=True) # Create folder if it does not exist
 
         cachediff = parse_cache(full_path, index, course.name)
         
@@ -168,7 +179,7 @@ def search_files_in_category(category: str, catID: str, course: Course, full_pat
         full_path (Path): The full path to the directory where files should be downloaded.
     """
     try:
-        print(f"> A procurar {category} de {course.name}...")
+        print(f"A procurar {category} de {course.name}...")
         table = parse_docs(course.year,course.semester_type, course.semester, course.ID, catID)
 
         _files = []
