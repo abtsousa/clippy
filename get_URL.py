@@ -1,6 +1,18 @@
 #Config
 import config
 
+def get_URL_YearList(user: int):
+    """
+    Generate the URL to the user page in CLIP.
+    
+    Parametes:
+        user (int): The user ID.
+        
+    Returns:
+        str: The generated URL.
+    """
+    return f"{config.domain}/utente/eu/aluno?aluno={user}"
+
 def get_URL_CourseList(year: int, user: int):
     """
     Generate the URL to the list of academic courses in CLIP.

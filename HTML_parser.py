@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup as bs
+import re
 import logging as log
-from get_URL import get_URL_CourseList, get_URL_FileList, get_URL_Index
+from get_URL import get_URL_YearList, get_URL_CourseList, get_URL_FileList, get_URL_Index
 from get_html import get_html
 from modules.CatCount import CatCount
 from modules.CourseList import CourseList
@@ -8,6 +9,21 @@ from modules.FilesList import FilesList
 
 #Config
 import config
+
+def parse_years(user: int):
+    """
+    Parse the user page to look for academic years the user was enrolled in.
+    """
+
+    url = get_URL_YearList(user)
+    soup = bs(get_html(url), 'html.parser')
+    links = soup.find_all("a", {"href": re.compile(r"ano_lectivo.+&ano_lectivo=(\d+)")})
+    log.debug(links)
+    #years = {match.group(1) for link in links if (match := re.search(r"ano_lectivo.+&ano_lectivo=(\d+)", link))}
+    years = { link.text : int(re.search(r"ano_lectivo.+&ano_lectivo=(\d+)",link['href']).group(1)) for link in links }
+
+    log.debug(years)
+    return years
 
 def parse_index(year: int, semester_type: str, semester: int, course: int):
     """

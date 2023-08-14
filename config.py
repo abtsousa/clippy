@@ -7,7 +7,7 @@ import logging as log
 MAX_THREADS = 8
 
 # Logging
-log.basicConfig(format="[%(levelname)s] %(message)s", level=log.WARNING)
+log.basicConfig(format="[%(levelname)s] %(message)s", level=log.DEBUG)
 
 def session_mount():
     global session

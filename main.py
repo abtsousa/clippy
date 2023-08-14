@@ -4,6 +4,7 @@ from pathlib import Path
 import logging as log
 import concurrent.futures as cf
 import typer
+from InquirerPy import inquirer
 from rich import print
 
 #Config
@@ -16,7 +17,7 @@ from modules.Course import Course
 
 # Local functions
 from get_login import get_login
-from HTML_parser import parse_courses, parse_docs, parse_index
+from HTML_parser import parse_courses, parse_docs, parse_index, parse_years
 from file_handler import get_file, download_file, count_files_in_subfolders
 from cache_handler import commit_cache, parse_cache, stash_cache
 from print_progress import print_progress
@@ -35,6 +36,8 @@ with a similar structure, keeping it in sync with the server.
 
 # TODO save config at the end or --config file or --ignore-config
 # TODO choose year and semester
+# TODO set log level
+# TODO config parameters as optional arguments
 # TODO Distribute
 
 # Dev comment:
@@ -61,13 +64,37 @@ def main(path: Path = Path.cwd()):
         except LoginError:
             continue
     
-    year = 2023 #TODO config
+    years = parse_years(user)
+    if len(years)<1:
+        log.ERROR("Não foram encontrados anos lectivos nos quais o utilizador está inscrito.")
+    #elif len(years)==1:
+    #    year = years[0]
+    else:
+        year = inquirer.rawlist( #TODO multiselect
+            message="Qual é o ano lectivo a transferir?",
+            choices=[
+                {"name": key, "value": value} for key, value in years.items()
+            ],
+            default=1,
+            max_height=len(years)
+        ).execute()
+    log.debug(year)
 
     # 1) Scrape units list
     print_progress(1,"A procurar unidades curriculares inscritas...")
     courses = parse_courses(year,user)
     log.info("Encontradas as seguintes unidades: "+" | ".join(course.name for course in courses) )
 
+    """
+    questions = [
+    inquirer.Checkbox('interests',
+                        message="What are you interested in?",
+                        choices=['Computers', 'Books', 'Science', 'Nature', 'Fantasy', 'History'],
+                        ),
+    ]
+    answers = inquirer.prompt(questions)
+    """
+    
     # 2) (Multithreaded) Load each unit's index and compare it to cached file if it exists
     print_progress(2, "A verificar se há ficheiros novos...")
     subcats = threadpool_execute(search_cats_in_course, [(path, course) for course in courses])
