@@ -34,6 +34,8 @@ Clipper successfully navigates the site in order to scrape it, and compares it t
 with a similar structure, keeping it in sync with the server.
 """
 
+# TODO passar todos os querys para inquirerpy?
+# TODO parse path ver se tem clipper no nome
 # TODO save config at the end or --config file or --ignore-config
 # TODO choose year and semester
 # TODO set log level
@@ -67,8 +69,9 @@ def main(path: Path = Path.cwd()):
     years = parse_years(user)
     if len(years)<1:
         log.ERROR("Não foram encontrados anos lectivos nos quais o utilizador está inscrito.")
-    #elif len(years)==1:
-    #    year = years[0]
+    elif len(years)==1:
+        year = years[0]
+        log.INFO(f"Encontrado apenas um ano lectivo: {year}")
     else:
         year = inquirer.rawlist( #TODO multiselect
             message="Qual é o ano lectivo a transferir?",
