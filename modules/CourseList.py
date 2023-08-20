@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup as bs
 from modules.Course import Course
 
 #Config
-import config
+import config as cfg
 
 class CourseList(list):
     """

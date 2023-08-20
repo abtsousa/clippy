@@ -2,7 +2,7 @@ import re
 from bs4 import BeautifulSoup as bs
 
 #Config
-import config # noqa: F401
+import config as cfg # noqa: F401
 
 class CatCount(dict):
     """

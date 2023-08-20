@@ -1,5 +1,5 @@
 #Config
-import config
+import config as cfg
 
 def get_html(url: str):
     """
@@ -11,6 +11,6 @@ def get_html(url: str):
     Returns:
         str: The HTML content of the URL.
     """
-    response = config.session.get(url)
+    response = cfg.session.get(url)
     response.raise_for_status()  # Raise an exception for HTTP errors
     return response.text

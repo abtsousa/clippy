@@ -4,7 +4,7 @@ import os
 import pandas as pd
 
 #Config
-import config
+import config as cfg
 
 class ClipFile:
     """

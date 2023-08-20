@@ -9,7 +9,7 @@ import requests
 from modules.ClipFile import ClipFile
 
 #Config
-import config
+import config as cfg
 
 def download_file(filepath: Path, url: str, file_size=0, file_mtime=None): #TODO refactor function with ClipFile and change file time
     """
@@ -22,7 +22,7 @@ def download_file(filepath: Path, url: str, file_size=0, file_mtime=None): #TODO
         file_mtime (datetime.datetime, optional): The desired modification time for the downloaded file. Defaults to None.
     """
     try:
-        r = config.session.get(url, stream=True)
+        r = cfg.session.get(url, stream=True)
         if file_size==0: file_size=r.headers['Content-Length']
         chunk_size = 1024
         downloaded_size = 0

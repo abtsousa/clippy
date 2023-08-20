@@ -8,7 +8,7 @@ from InquirerPy import inquirer
 from rich import print
 
 #Config
-import config
+import config as cfg
 
 # Local modules
 from modules.LoginError import LoginError
@@ -23,20 +23,32 @@ from cache_handler import commit_cache, parse_cache, stash_cache
 from print_progress import print_progress
 
 """
-Clipper
+NOVA Clippy
 A simple web scraper and downloader for FCT-NOVA's internal e-learning platform, CLIP.
 The program scrapes a user's courses for available downloads and syncs them with a local folder.
 
 CLIP's files are organized in subcategories for each academic course like this:
 Academic year >> Course documents >> Document subcategory >> Files list
 
-Clipper successfully navigates the site in order to scrape it, and compares it to a local folder
+Clippy successfully navigates the site in order to scrape it, and compares it to a local folder
 with a similar structure, keeping it in sync with the server.
+"""
+
+"""
+ __                 
+/  \        _______________________ 
+|  |       /                       \
+@  @       | It looks like you     |
+|| ||      | are downloading files |
+|| ||   <--| from CLIP. Do you     |
+|\_/|      | need assistance?      |
+\___/      \_______________________/
 """
 
 # TODO passar todos os querys para inquirerpy?
 # TODO parse path ver se tem clipper no nome
 # TODO save config at the end or --config file or --ignore-config
+# TODO do-not-save / forget
 # TODO choose year and semester
 # TODO set log level
 # TODO config parameters as optional arguments
@@ -45,7 +57,7 @@ with a similar structure, keeping it in sync with the server.
 # Dev comment:
 # The code mimics the site's structure, as follows:
 #       CLIP: Academic year   >> Course >> Document subcategory >> Files list >>   File
-#    Clipper:  CourseList     >> Course >>      CatCount        >>  FilesList >> ClipFile
+#     Clippy:  CourseList     >> Course >>      CatCount        >>  FilesList >> ClipFile
 # Local copy:      Year       /  Course /       Category        /     Files
 
 __author__ = "Afonso Bras Sousa (LEI-65263)"
@@ -61,17 +73,17 @@ def main(path: Path = Path.cwd()):
     valid_login = False
     while not valid_login:
         try:
-            user = get_login()
+            user = get_login(cfg.username, cfg.password)
             valid_login = True
         except LoginError:
             continue
     
     years = parse_years(user)
     if len(years)<1:
-        log.ERROR("Não foram encontrados anos lectivos nos quais o utilizador está inscrito.")
+        log.error("Não foram encontrados anos lectivos nos quais o utilizador está inscrito.")
     elif len(years)==1:
-        year = years[0]
-        log.INFO(f"Encontrado apenas um ano lectivo: {year}")
+        year = list(years.values())[0] # get index 0
+        log.info(f"Encontrado apenas um ano lectivo ({year}).")
     else:
         year = inquirer.rawlist( #TODO multiselect
             message="Qual é o ano lectivo a transferir?",
@@ -88,16 +100,6 @@ def main(path: Path = Path.cwd()):
     courses = parse_courses(year,user)
     log.info("Encontradas as seguintes unidades: "+" | ".join(course.name for course in courses) )
 
-    """
-    questions = [
-    inquirer.Checkbox('interests',
-                        message="What are you interested in?",
-                        choices=['Computers', 'Books', 'Science', 'Nature', 'Fantasy', 'History'],
-                        ),
-    ]
-    answers = inquirer.prompt(questions)
-    """
-    
     # 2) (Multithreaded) Load each unit's index and compare it to cached file if it exists
     print_progress(2, "A verificar se há ficheiros novos...")
     subcats = threadpool_execute(search_cats_in_course, [(path, course) for course in courses])
@@ -128,8 +130,11 @@ def main(path: Path = Path.cwd()):
         print("\n".join(f"'{folder}'" for folder in unique_folders))
     else:
         print("Não foram encontrados ficheiros novos.")
+    
+    cfg.save_config()
 
-def threadpool_execute(worker_function, items, max_workers=config.MAX_THREADS):
+
+def threadpool_execute(worker_function, items, max_workers=cfg.MAX_THREADS):
     results = []
     with cf.ThreadPoolExecutor(max_workers=max_workers) as pool: 
         futures = {pool.submit(worker_function, *args): args for args in items}

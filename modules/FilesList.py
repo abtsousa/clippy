@@ -3,7 +3,7 @@ from modules.ClipFile import ClipFile
 import pandas as pd
 
 #Config
-import config
+import config as cfg
 
 class FilesList:
     """
@@ -77,7 +77,7 @@ class FilesList:
 
             if columns != []:
                 nome = columns[0].text.strip()
-                link = config.domain + columns[1].find("a").get("href")
+                link = cfg.domain + columns[1].find("a").get("href")
                 data = columns[2].text.strip()
                 tamanho = self.convert_str_to_byte(columns[3].text.strip())
                 docente = columns[4].text.strip()

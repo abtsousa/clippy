@@ -6,7 +6,7 @@ from modules.LoginError import LoginError
 from print_progress import print_progress
 
 #Config
-import config
+import config as cfg
 
 count = 0
 def get_login(username: str = None,password: str = None) -> int:
@@ -32,11 +32,14 @@ def get_login(username: str = None,password: str = None) -> int:
 
     try:
         print_progress(0,"A fazer login...")
-        response = config.session.post('https://clip.fct.unl.pt/', data=login_data, timeout=10)
+        response = cfg.session.post('https://clip.fct.unl.pt/', data=login_data, timeout=10)
         response.raise_for_status()  # Raise an exception for HTTP errors
         if "Autenticação inválida" in response.text:
             raise LoginError("Autenticação falhou.")
         
+        # Save login info to config.py
+        cfg.update(username, password)
+
         # Return user ID
         id = re.search(r"\/utente\/eu\/aluno\?aluno=(\d+)",response.text).group(1)
         return int(id)
@@ -46,7 +49,7 @@ def get_login(username: str = None,password: str = None) -> int:
         count += 1
         if count > 3: raise LoginError("Demasiadas tentativas de conexão. Tente novamente mais tarde.")
         log.warning(f"Ligação ao servidor excedeu o tempo, a tentar novamente... ({count}/3)")
-        config.session_mount() # Reset session
+        cfg.session_mount() # Reset session
         sleep(1)
         get_login(username,password)
     except requests.exceptions.RequestException as e:

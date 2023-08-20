@@ -1,7 +1,7 @@
 import re
 
 #Config
-import config
+import config as cfg
 
 class Course:
     """

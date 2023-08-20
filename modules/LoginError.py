@@ -1,7 +1,7 @@
 import logging as log
 
 #Config
-import config
+import config as cfg
 
 class LoginError(Exception):
     """

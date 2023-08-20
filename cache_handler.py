@@ -5,7 +5,7 @@ from pathlib import Path
 from modules.CatCount import CatCount
 
 #Config
-import config # noqa: F401
+import config as cfg # noqa: F401
 
 cache_stack = []
 
