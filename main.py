@@ -7,6 +7,7 @@ import typer
 from typing_extensions import Annotated
 from typing import Optional
 from InquirerPy import inquirer
+from InquirerPy.validator import PathValidator
 from rich import print
 
 #Config
@@ -69,13 +70,13 @@ __email__ = "ab.sousa@campus.fct.unl.pt"
 __version__ = "0.9b"
 
 def main(username: Annotated[str, typer.Option(help="Your username in CLIP.", show_default=False)] = None,
-                path: Annotated[Optional[Path], typer.Argument(help="The folder where you want to save files from CLIP. (optional)", show_default=False)] = Path.cwd()):
+                path: Annotated[Optional[Path], typer.Argument(help="The folder where you want to save files from CLIP. (optional)", show_default=False)] = None):
     """
     Clippy is a simple web scraper and downloader for FCT-NOVA's internal e-learning platform, CLIP.
     The program scrapes a user's courses for available downloads and syncs them with a local folder.
     """
     # Check valid path
-    check_path(path)
+    path = check_path(path)
 
     # 0/5 Start login
     valid_login = False
@@ -162,20 +163,41 @@ def threadpool_execute(worker_function, items, max_workers=cfg.MAX_THREADS):
     return results
 
 def check_path(path: Path):
+    if path is None:
+        path = Path.cwd()
+        if path.name != "CLIP": path = path / "CLIP"
     if not path.exists():
-        char = input(f"A directoria {path} não existe. Criá-la? (S/n) ")
-        match char:
-            case 's' | 'S' | 'y' | 'Y' | '\r':
-                path.mkdir(parents=True, exist_ok=True)
-                log.info("A criar directoria {path}.")
-            case _:
-                print("A abortar programa... Adeus!")
-                exit()
+        if inquirer.confirm(
+            message=f"A directoria {path} não existe. Criá-la?",
+            default=True,
+            confirm_letter="s",
+            reject_letter="n",
+            transformer=lambda result: "Sim" if result else "Não",
+        ).execute():
+            path.mkdir(parents=True, exist_ok=True)
+            print(f"A criar a directoria {path}.")
+        else:
+            path = query_path(path)
+            check_path(path)
         #TODO check for config file in directory?
         #TODO default directory input instead of cwd?
+    elif not path.is_dir():
+        print("O caminho desejado não é uma directoria válida.")
+        path = query_path(path)
+        check_path(path)
+    return path
+
+def query_path(path: Path = None):
+    return Path(inquirer.filepath(
+                message="Introduza a directoria onde pretende guardar os ficheiros:",
+                default = str(path),
+                only_directories=True,
+            ).execute())
 
 def dict_compare(dict_a: dict, dict_b: dict):
-    return {key: dict_a[key] for key in dict_a.keys() if key not in dict_b or dict_a[key] > dict_b[key]}
+    if dict_b is None: return dict_a
+    elif dict_a is None: return dict_b
+    else: return {key: dict_a[key] for key in dict_a.keys() if key not in dict_b or dict_a[key] > dict_b[key]}
 
 def search_cats_in_course(path: Path, course: Course) -> [(str, str, Course, Path)]:
     print(f"A procurar documentos de {course.name}...")
@@ -194,7 +216,7 @@ def search_cats_in_course(path: Path, course: Course) -> [(str, str, Course, Pat
 
         # Cache management
         cachedict = parse_cache(full_path, index, course.name)
-        cachediff = dict_compare(index, cachedict) if cachedict is not None else index
+        cachediff = dict_compare(index, cachedict)
 
         _subcats = []
         
