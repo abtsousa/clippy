@@ -4,6 +4,8 @@ from pathlib import Path
 import logging as log
 import concurrent.futures as cf
 import typer
+from typing_extensions import Annotated
+from typing import Optional
 from InquirerPy import inquirer
 from rich import print
 
@@ -66,7 +68,12 @@ __maintainer__ = "Afonso Bras Sousa"
 __email__ = "ab.sousa@campus.fct.unl.pt"
 __version__ = "0.9b"
 
-def main(path: Path = Path.cwd()):
+def main(user: Annotated[str, typer.Option(help="Your username in CLIP.", show_default=False)] = None,
+                path: Annotated[Optional[Path], typer.Argument(help="The folder where you want to save files from CLIP. (optional)", show_default=False)] = Path.cwd()):
+    """
+    Clippy is a simple web scraper and downloader for FCT-NOVA's internal e-learning platform, CLIP.
+    The program scrapes a user's courses for available downloads and syncs them with a local folder.
+    """
     # Check valid path
     check_path(path)
 
@@ -74,17 +81,20 @@ def main(path: Path = Path.cwd()):
     valid_login = False
     while not valid_login:
         try:
-            user = get_login(cfg.username, cfg.password)
+            if user is not None:
+                userID = get_login(user)
+            else:
+                userID = get_login(cfg.username, cfg.password)
             valid_login = True
         except LoginError:
             continue
     
-    years = parse_years(user)
+    years = parse_years(userID)
     if len(years)<1:
         log.error("Não foram encontrados anos lectivos nos quais o utilizador está inscrito.")
     elif len(years)==1:
         year = list(years.values())[0] # get index 0
-        log.info(f"Encontrado apenas um ano lectivo ({year}).")
+        log.info(f"Encontradenas um ano lectivo ({year}).")
     else:
         year = inquirer.rawlist( #TODO multiselect
             message="Qual é o ano lectivo a transferir?",
