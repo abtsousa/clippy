@@ -81,10 +81,10 @@ def main(user: Annotated[str, typer.Option(help="Your username in CLIP.", show_d
     valid_login = False
     while not valid_login:
         try:
-            if user is not None:
-                userID = get_login(user)
-            else:
+            if user is None:
                 userID = get_login(cfg.username, cfg.password)
+            else:
+                userID = get_login(user)
             valid_login = True
         except LoginError:
             continue
@@ -108,7 +108,7 @@ def main(user: Annotated[str, typer.Option(help="Your username in CLIP.", show_d
 
     # 1) Scrape units list
     print_progress(1,"A procurar unidades curriculares inscritas...")
-    courses = parse_courses(year,user)
+    courses = parse_courses(year,userID)
     log.info("Encontradas as seguintes unidades: "+" | ".join(course.name for course in courses) )
 
     # 2) (Multithreaded) Load each unit's index and compare it to cached file if it exists

@@ -66,7 +66,7 @@ def update_credentials(new_user, new_password):
 MAX_THREADS = 8
 
 # Logging
-log.basicConfig(format="[%(levelname)s] %(message)s", level=log.DEBUG)
+log.basicConfig(format="[%(levelname)s] %(message)s", level=log.WARNING)
 
 def session_mount():
     global session
