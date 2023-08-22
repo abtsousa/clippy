@@ -68,7 +68,7 @@ __maintainer__ = "Afonso Bras Sousa"
 __email__ = "ab.sousa@campus.fct.unl.pt"
 __version__ = "0.9b"
 
-def main(user: Annotated[str, typer.Option(help="Your username in CLIP.", show_default=False)] = None,
+def main(username: Annotated[str, typer.Option(help="Your username in CLIP.", show_default=False)] = None,
                 path: Annotated[Optional[Path], typer.Argument(help="The folder where you want to save files from CLIP. (optional)", show_default=False)] = Path.cwd()):
     """
     Clippy is a simple web scraper and downloader for FCT-NOVA's internal e-learning platform, CLIP.
@@ -81,20 +81,20 @@ def main(user: Annotated[str, typer.Option(help="Your username in CLIP.", show_d
     valid_login = False
     while not valid_login:
         try:
-            if user is None:
-                userID = get_login(cfg.username, cfg.password)
+            if username is None:
+                user = get_login(cfg.username, cfg.password)
             else:
-                userID = get_login(user)
+                user = get_login(username)
             valid_login = True
         except LoginError:
             continue
     
-    years = parse_years(userID)
+    years = parse_years(user)
     if len(years)<1:
         log.error("Não foram encontrados anos lectivos nos quais o utilizador está inscrito.")
     elif len(years)==1:
         year = list(years.values())[0] # get index 0
-        log.info(f"Encontradenas um ano lectivo ({year}).")
+        log.info(f"Encontrado apenas um ano lectivo ({year}).")
     else:
         year = inquirer.rawlist( #TODO multiselect
             message="Qual é o ano lectivo a transferir?",
@@ -108,7 +108,7 @@ def main(user: Annotated[str, typer.Option(help="Your username in CLIP.", show_d
 
     # 1) Scrape units list
     print_progress(1,"A procurar unidades curriculares inscritas...")
-    courses = parse_courses(year,userID)
+    courses = parse_courses(year,user)
     log.info("Encontradas as seguintes unidades: "+" | ".join(course.name for course in courses) )
 
     # 2) (Multithreaded) Load each unit's index and compare it to cached file if it exists
@@ -194,7 +194,7 @@ def search_cats_in_course(path: Path, course: Course) -> [(str, str, Course, Pat
 
         # Cache management
         cachedict = parse_cache(full_path, index, course.name)
-        cachediff = dict_compare(index, cachedict)
+        cachediff = dict_compare(index, cachedict) if cachedict is not None else index
 
         _subcats = []
         
