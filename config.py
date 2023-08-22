@@ -9,16 +9,24 @@ from appdirs import user_data_dir
 
 import get_login
 
+# TODO dynamically store and load a config file like:
+#cfg = {s:dict(config.items(s)) for s in config.sections()}
+
 def load_config():
     """Load a basic user config."""
-    cfgpath = Path(user_data_dir("clipper")) / "config.ini"
+    cfgpath = Path(user_data_dir("clippy")) / "config.ini"
     if Path.is_file(cfgpath):
         log.info(f"Ficheiro de configuração encontrado: {cfgpath}")
-        config = configparser.ConfigParser()
-        config.read(cfgpath)
-        username = config.get("Credenciais","username")
-        password = config.get("Credenciais","password")
-        return username, password
+        try:
+            config = configparser.ConfigParser()
+            config.read(cfgpath)
+            try: username = config.get("Credenciais","username")
+            except configparser.NoOptionError: username = None
+            try: password = config.get("Credenciais","password")
+            except configparser.NoOptionError: password = None
+            return username, password
+        except configparser.MissingSectionHeaderError:
+            return None, None
     else:
         log.info("Nenhum ficheiro de configuração encontrado.")
     return None, None
@@ -26,22 +34,29 @@ def load_config():
 def save_config():
     """Save a basic user config."""
     global username, password
-    cfgpath = Path(user_data_dir("clipper")) / "config.ini"
-    if not Path.is_file(cfgpath) and inquirer.confirm(
+    cfgpath = Path(user_data_dir("clippy")) / "config.ini"
+    config = configparser.ConfigParser()
+    try:
+        config.read(cfgpath)
+    except FileNotFoundError:
+        pass
+    except configparser.MissingSectionHeaderError:
+        pass
+    
+    if (not Path.is_file(cfgpath) or "Credenciais" not in config.sections() or username != config.get("Credenciais","username") or password != config.get("Credenciais","password") ) and inquirer.confirm(
         message="Guardar credenciais em sistema para a próxima vez?",
         default=True,
         confirm_letter="s",
         reject_letter="n",
         transformer=lambda result: "Sim" if result else "Não",
     ).execute():
-        config = configparser.ConfigParser()
         config['Credenciais'] = {"username": username, "password": password}
         Path.mkdir(cfgpath.parent, parents=True, exist_ok=True)
         with open(cfgpath, 'w+') as configfile:
             config.write(configfile)
             print(f"Ficheiro de configuração guardado em: '{cfgpath}'")
 
-def update(new_user, new_password):
+def update_credentials(new_user, new_password):
     """Update saved credentials."""
     global username, password
     username = new_user

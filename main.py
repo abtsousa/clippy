@@ -44,12 +44,13 @@ with a similar structure, keeping it in sync with the server.
 |\_/|      | need assistance?      |
 \___/      \_______________________/
 """
-
+# TODO path in config
 # TODO passar todos os querys para inquirerpy?
 # TODO parse path ver se tem clipper no nome
 # TODO save config at the end or --config file or --ignore-config
 # TODO do-not-save / forget
 # TODO choose year and semester
+# TODO auto (choose latest year)
 # TODO set log level
 # TODO config parameters as optional arguments
 # TODO Distribute

@@ -11,4 +11,5 @@ class LoginError(Exception):
         message (str): A custom error message (optional).
     """
     def __init__(self, message="Erro de login"):
+        cfg.update_credentials(None,None) # reset wrong credentials
         log.error(message)

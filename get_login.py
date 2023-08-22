@@ -38,7 +38,7 @@ def get_login(username: str = None,password: str = None) -> int:
             raise LoginError("Autenticação falhou.")
         
         # Save login info to config.py
-        cfg.update(username, password)
+        cfg.update_credentials(username, password)
 
         # Return user ID
         id = re.search(r"\/utente\/eu\/aluno\?aluno=(\d+)",response.text).group(1)
