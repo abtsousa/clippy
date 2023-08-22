@@ -1,9 +1,9 @@
-import getpass, re, requests
+import re, requests
 import logging as log
-from requests import Session
 from time import sleep
+from InquirerPy import inquirer
 from modules.LoginError import LoginError
-from print_progress import print_progress
+from print_handler import print_progress
 
 #Config
 import config as cfg
@@ -22,8 +22,11 @@ def get_login(username: str = None,password: str = None) -> int:
         int: The user's internal ID.
     """
     global count #retry count
-    if username is None: username = input("Nome de utilizador: ")
-    if password is None: password = getpass.getpass()
+    if username is None: username = inquirer.text(message="Nome de utilizador:").execute()
+    if password is None: password = inquirer.secret(
+        message="Palavra-passe:",
+        transformer=lambda _: "[ocultada]",
+    ).execute()
     
     login_data = {
         'identificador': username,

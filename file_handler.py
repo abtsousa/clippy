@@ -44,7 +44,6 @@ def download_file(filepath: Path, url: str, file_size=0, file_mtime=None): #TODO
                 log.debug("A actualizar para %d", int(mtime))
                 os.utime(filepath,times=(mtime,mtime))
                 log.debug("Novo mod-time: %d", int(os.stat(filepath).st_mtime))
-
         else:
             raise requests.HTTPError(f'Código de estado HTTP: {r.status_code}')
     except Exception as ex:

@@ -4,10 +4,10 @@ from pathlib import Path
 import logging as log
 import concurrent.futures as cf
 import typer
+import time
 from typing_extensions import Annotated
 from typing import Optional
 from InquirerPy import inquirer
-from InquirerPy.validator import PathValidator
 from rich import print
 
 #Config
@@ -23,7 +23,7 @@ from get_login import get_login
 from HTML_parser import parse_courses, parse_docs, parse_index, parse_years
 from file_handler import get_file, download_file, count_files_in_subfolders
 from cache_handler import commit_cache, parse_cache, stash_cache
-from print_progress import print_progress
+from print_handler import print_progress, human_readable_size
 
 """
 NOVA Clippy
@@ -47,12 +47,7 @@ with a similar structure, keeping it in sync with the server.
 |\_/|      | need assistance?      |
 \___/      \_______________________/
 """
-# TODO path in config
-# TODO passar todos os querys para inquirerpy?
-# TODO parse path ver se tem clipper no nome
-# TODO save config at the end or --config file or --ignore-config
-# TODO do-not-save / forget
-# TODO choose year and semester
+
 # TODO auto (choose latest year)
 # TODO set log level
 # TODO config parameters as optional arguments
@@ -69,11 +64,21 @@ __maintainer__ = "Afonso Bras Sousa"
 __email__ = "ab.sousa@campus.fct.unl.pt"
 __version__ = "0.9b"
 
-def main(username: Annotated[str, typer.Option(help="Your username in CLIP.", show_default=False)] = None,
-                path: Annotated[Optional[Path], typer.Argument(help="The folder where you want to save files from CLIP. (optional)", show_default=False)] = None):
-    """
-    Clippy is a simple web scraper and downloader for FCT-NOVA's internal e-learning platform, CLIP.
-    The program scrapes a user's courses for available downloads and syncs them with a local folder.
+def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLIP.", show_default=False)] = None,
+        path: Annotated[Optional[Path], typer.Argument(help="A pasta onde os ficheiros do CLIP serão guardados. (opcional)", show_default=False)] = None,
+        force_login: Annotated[bool, typer.Option(help="Ignora as credenciais guardadas em sistema.")] = False,
+        auto: Annotated[bool, typer.Option(help="Escolhe automaticamente o ano lectivo mais recente.")] = True,
+    ):
+    """\bO Clippy é um simples web scrapper e gestor de downloads para a plataforma interna de e-learning da FCT-NOVA, o CLIP.
+    O programa procura os ficheiros disponíveis nas páginas das cadeiras de um utilizador e sincroniza-os com uma pasta local.
+     __                 
+    /  \\        _______________________ 
+    |  |       /                       \\
+    @  @       | Parece que estás a    |
+    || ||      | tentar descarregar    |
+    || ||   <--| ficheiros do CLIP.    |
+    |\\_/|      | Precisas de ajuda?    |
+    \\___/      \\_______________________/
     """
     # Check valid path
     path = check_path(path)
@@ -82,7 +87,7 @@ def main(username: Annotated[str, typer.Option(help="Your username in CLIP.", sh
     valid_login = False
     while not valid_login:
         try:
-            if username is None:
+            if username is None and not force_login:
                 user = get_login(cfg.username, cfg.password)
             else:
                 user = get_login(username)
@@ -93,9 +98,10 @@ def main(username: Annotated[str, typer.Option(help="Your username in CLIP.", sh
     years = parse_years(user)
     if len(years)<1:
         log.error("Não foram encontrados anos lectivos nos quais o utilizador está inscrito.")
-    elif len(years)==1:
+        exit()
+    elif len(years)==1 or auto:
         year = list(years.values())[0] # get index 0
-        log.info(f"Encontrado apenas um ano lectivo ({year}).")
+        if len(years)==1: log.info(f"Encontrado apenas um ano lectivo ({year}).")
     else:
         year = inquirer.rawlist( #TODO multiselect
             message="Qual é o ano lectivo a transferir?",
@@ -124,6 +130,8 @@ def main(username: Annotated[str, typer.Option(help="Your username in CLIP.", sh
     
     # 4) (Multithreaded) Download missing files
     if len(files) != 0:
+        download_timestart = time.time_ns()
+        download_sizestart = sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())
         print_progress(4, "A transferir ficheiros em falta...")
         _ = threadpool_execute(download_file, files, max_workers=4)
         print("Todos os ficheiros foram transferidos.")
@@ -137,8 +145,10 @@ def main(username: Annotated[str, typer.Option(help="Your username in CLIP.", sh
     # 6) Exit with success
     print_progress(6, "Concluído :)")
     if len(files) != 0:
+        download_time = (time.time_ns() - download_timestart) / 10**9
+        download_size = (sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())) - download_sizestart
         unique_folders = sorted({str(file[0].parent) for file in files})
-        print(f"Transferidos {len(files)} ficheiros para as pastas:")
+        print(f"Transferidos {len(files)} ficheiros ({human_readable_size(download_size)} em [dim cyan bold]{download_time}[/dim cyan bold]s) para as pastas:")
         print("\n".join(f"'{folder}'" for folder in unique_folders))
     else:
         print("Não foram encontrados ficheiros novos.")
@@ -192,7 +202,7 @@ def query_path(path: Path = None):
                 message="Introduza a directoria onde pretende guardar os ficheiros:",
                 default = str(path),
                 only_directories=True,
-            ).execute())
+            ).execute()).expanduser()
 
 def dict_compare(dict_a: dict, dict_b: dict):
     if dict_b is None: return dict_a
