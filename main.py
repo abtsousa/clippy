@@ -48,12 +48,11 @@ with a similar structure, keeping it in sync with the server.
 \___/      \_______________________/
 """
 
-# TODO auto (choose latest year)
-# TODO set log level
-# TODO config parameters as optional arguments
-# TODO Distribute
+# TODO create package https://typer.tiangolo.com/tutorial/package/ and https://stackoverflow.com/questions/20101834/pip-install-from-git-repo-branch
+# TODO Distribute as exe?
+# TODO remove pandas and any other unneccessary dependencies
+# TODO generate dependencies?
 
-# Dev comment:
 # The code mimics the site's structure, as follows:
 #       CLIP: Academic year   >> Course >> Document subcategory >> Files list >>   File
 #     Clippy:  CourseList     >> Course >>      CatCount        >>  FilesList >> ClipFile
@@ -66,7 +65,7 @@ __version__ = "0.9b"
 
 def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLIP.", show_default=False)] = None,
         path: Annotated[Optional[Path], typer.Argument(help="A pasta onde os ficheiros do CLIP serão guardados. (opcional)", show_default=False)] = None,
-        force_login: Annotated[bool, typer.Option(help="Ignora as credenciais guardadas em sistema.")] = False,
+        force_relogin: Annotated[bool, typer.Option(help="Ignora as credenciais guardadas em sistema.")] = False,
         auto: Annotated[bool, typer.Option(help="Escolhe automaticamente o ano lectivo mais recente.")] = True,
     ):
     """\bO Clippy é um simples web scrapper e gestor de downloads para a plataforma interna de e-learning da FCT-NOVA, o CLIP.
@@ -87,7 +86,7 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
     valid_login = False
     while not valid_login:
         try:
-            if username is None and not force_login:
+            if username is None and not force_relogin:
                 user = get_login(cfg.username, cfg.password)
             else:
                 user = get_login(username)
@@ -99,9 +98,12 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
     if len(years)<1:
         log.error("Não foram encontrados anos lectivos nos quais o utilizador está inscrito.")
         exit()
-    elif len(years)==1 or auto:
+    elif len(years)==1:
         year = list(years.values())[0] # get index 0
-        if len(years)==1: log.info(f"Encontrado apenas um ano lectivo ({year}).")
+        log.info(f"Encontrado apenas um ano lectivo ({year}).")
+    elif auto:
+        year = sorted(list(years.values()))[-1] # get index 0
+        log.info("Modo automático activo, a escolher o ano lectivo mais recente...")
     else:
         year = inquirer.rawlist( #TODO multiselect
             message="Qual é o ano lectivo a transferir?",
