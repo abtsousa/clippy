@@ -1,5 +1,5 @@
 #Config
-import config as cfg
+import nova_clippy.config as cfg
 
 def get_URL_YearList(user: int):
     """

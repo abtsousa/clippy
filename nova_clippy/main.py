@@ -11,19 +11,19 @@ from InquirerPy import inquirer
 from rich import print
 
 #Config
-import config as cfg
+import nova_clippy.config as cfg
 
 # Local modules
-from modules.LoginError import LoginError
-from modules.CourseList import CourseList
-from modules.Course import Course
+from .modules.LoginError import LoginError
+from .modules.CourseList import CourseList
+from .modules.Course import Course
 
 # Local functions
-from get_login import get_login
-from HTML_parser import parse_courses, parse_docs, parse_index, parse_years
-from file_handler import get_file, download_file, count_files_in_subfolders
-from cache_handler import commit_cache, parse_cache, stash_cache
-from print_handler import print_progress, human_readable_size
+from .handlers.get_login import get_login
+from .handlers.HTML_parser import parse_courses, parse_docs, parse_index, parse_years
+from .handlers.file_handler import get_file, download_file, count_files_in_subfolders
+from .handlers.cache_handler import commit_cache, parse_cache, stash_cache
+from .handlers.print_handler import print_progress, human_readable_size
 
 """
 NOVA Clippy
@@ -63,6 +63,9 @@ __maintainer__ = "Afonso Bras Sousa"
 __email__ = "ab.sousa@campus.fct.unl.pt"
 __version__ = "0.9b"
 
+app = typer.Typer()
+
+@app.command()
 def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLIP.", show_default=False)] = None,
         path: Annotated[Optional[Path], typer.Argument(help="A pasta onde os ficheiros do CLIP serão guardados. (opcional)", show_default=False)] = None,
         force_relogin: Annotated[bool, typer.Option(help="Ignora as credenciais guardadas em sistema.")] = False,
@@ -293,4 +296,4 @@ def search_files_in_category(category: str, catID: str, course: Course, full_pat
         pass
 
 if __name__ == "__main__":
-    typer.run(main)
+    app()

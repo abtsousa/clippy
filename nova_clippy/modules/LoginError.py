@@ -1,7 +1,7 @@
 import logging as log
 
 #Config
-import config as cfg
+import nova_clippy.config as cfg
 
 class LoginError(Exception):
     """

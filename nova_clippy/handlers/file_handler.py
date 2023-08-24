@@ -6,10 +6,10 @@ import logging as log
 import os
 import requests
 
-from modules.ClipFile import ClipFile
+from ..modules.ClipFile import ClipFile
 
 #Config
-import config as cfg
+import nova_clippy.config as cfg
 
 def download_file(filepath: Path, url: str, file_size=0, file_mtime=None): #TODO refactor function with ClipFile and change file time
     """

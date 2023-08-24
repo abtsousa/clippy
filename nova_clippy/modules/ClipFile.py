@@ -4,7 +4,7 @@ import os
 import pandas as pd
 
 #Config
-import config as cfg
+import nova_clippy.config as cfg
 
 class ClipFile:
     """

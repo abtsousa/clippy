@@ -7,8 +7,6 @@ from pathlib import Path
 from InquirerPy import inquirer
 from appdirs import user_data_dir
 
-import get_login
-
 # TODO dynamically store and load a config file like:
 #cfg = {s:dict(config.items(s)) for s in config.sections()}
 

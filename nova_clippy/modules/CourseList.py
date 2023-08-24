@@ -2,10 +2,10 @@ import re
 import logging as log
 from bs4 import BeautifulSoup as bs
 
-from modules.Course import Course
+from .Course import Course
 
 #Config
-import config as cfg
+import nova_clippy.config as cfg
 
 class CourseList(list):
     """

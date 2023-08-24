@@ -2,11 +2,11 @@ import re, requests
 import logging as log
 from time import sleep
 from InquirerPy import inquirer
-from modules.LoginError import LoginError
-from print_handler import print_progress
+from ..modules.LoginError import LoginError
+from .print_handler import print_progress
 
 #Config
-import config as cfg
+import nova_clippy.config as cfg
 
 count = 0
 def get_login(username: str = None,password: str = None) -> int:
