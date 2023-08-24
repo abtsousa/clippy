@@ -62,17 +62,18 @@ def get_file(file: ClipFile, path: Path) -> (Path, str, int, datetime):
     """
     log.debug(f"{file} {file.is_synced(path)}")
     file_path = path / file.name
-    match file.is_synced(path):        
-        case True:
-            log.info(f"Encontrado {file.name} na pasta '{path}', a saltar...")
-            return None
-        case False:
-            log.warning(f"O ficheiro '{file_path}' está desactualizado e vai ser transferido.")
-            #download_to_file(path / file.name,file.link,file.size,file.mtime)
-            return (path / file.name,file.link,file.size,file.mtime)
-        case None:
-            #download_to_file(path / file.name,file.link,file.size,file.mtime)
-            return (path / file.name,file.link,file.size,file.mtime)
+    
+    sync_status = file.is_synced(path)
+
+    if sync_status is None:
+        return (path / file.name,file.link,file.size,file.mtime)
+    elif sync_status: #True
+        log.info(f"Encontrado {file.name} na pasta '{path}', a saltar...")
+        return None
+    else: #False
+        log.warning(f"O ficheiro '{file_path}' está desactualizado e vai ser transferido.")
+        #download_to_file(path / file.name,file.link,file.size,file.mtime)
+        return (path / file.name,file.link,file.size,file.mtime)
 
 def count_files_in_subfolders(path: Path) -> dict:
     result = {}
