@@ -33,7 +33,7 @@ Install with pip:
 
 ```pip install https://github.com/abtsousa/nova-clippy/archive/v0.9b2.zip```
 
-**Report any bugs to ab.sousa@campus.fct.unl.pt**. Use `--debug` option to generate a log.log file that you can attach in the email.
+**Report any bugs here or to ab.sousa@campus.fct(...etc)**. Use `--debug` option to generate a log.log file that you can attach in the email.
 
 ## Usage
 
