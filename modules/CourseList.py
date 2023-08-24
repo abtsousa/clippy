@@ -54,6 +54,6 @@ class CourseList(list):
             log.debug(str(html))
             table = html.find_all("td", attrs={"width": "100%"})[1].find_all("a", {"href": re.compile(r"&unidade=(\d+)")}) # TODO possivel IndexError out of range
             return table
-        except IndexError as error: #TODO DEBUG
+        except IndexError: #TODO DEBUG
             log.error(f"Falha crítica: o servidor devolveu conteúdo HTML inválido. Espere uns segundos e tente novamente.\nO servidor devolveu o seguinte conteúdo HTML:\n {html}")
             exit()

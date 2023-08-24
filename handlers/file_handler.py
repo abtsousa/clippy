@@ -6,7 +6,7 @@ import logging as log
 import os
 import requests
 
-from ..modules.ClipFile import ClipFile
+from modules.ClipFile import ClipFile
 
 #Config
 import nova_clippy.config as cfg

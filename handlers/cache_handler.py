@@ -2,7 +2,7 @@ import json
 import logging as log
 from pathlib import Path
 
-from ..modules.CatCount import CatCount
+from modules.CatCount import CatCount
 
 #Config
 import nova_clippy.config as cfg # noqa: F401

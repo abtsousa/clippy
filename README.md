@@ -19,3 +19,20 @@ Clippy successfully navigates the site in order to scrape it, and compares it to
 |\_/|      | need assistance?      |
 \___/      \_______________________/
 ```
+
+## Usage
+
+Usage: clippy [OPTIONS] [PATH]
+
+### Arguments
+
+[PATH]  The folder where CLIP files will be stored.
+
+### Options
+
+```text
+--username        The user's username in CLIP.
+--force-relogin   Ignores saved login credentials Ignora as credenciais guardadas em sistema. [default: no-force-relogin]                                                                        │
+--auto            Automatically chooses the latest year available. [default: auto]                                                                            │
+--help            Show this message and exit.
+```

@@ -63,9 +63,6 @@ def update_credentials(new_user, new_password):
 # Multithreading
 MAX_THREADS = 8
 
-# Logging
-log.basicConfig(format="[%(levelname)s] %(message)s", level=log.WARNING)
-
 def session_mount():
     global session
     #Implement auto retry

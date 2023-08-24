@@ -14,16 +14,16 @@ from rich import print
 import nova_clippy.config as cfg
 
 # Local modules
-from .modules.LoginError import LoginError
-from .modules.CourseList import CourseList
-from .modules.Course import Course
+from modules.LoginError import LoginError
+from modules.CourseList import CourseList
+from modules.Course import Course
 
 # Local functions
-from .handlers.get_login import get_login
-from .handlers.HTML_parser import parse_courses, parse_docs, parse_index, parse_years
-from .handlers.file_handler import get_file, download_file, count_files_in_subfolders
-from .handlers.cache_handler import commit_cache, parse_cache, stash_cache
-from .handlers.print_handler import print_progress, human_readable_size
+from handlers.get_login import get_login
+from handlers.HTML_parser import parse_courses, parse_docs, parse_index, parse_years
+from handlers.file_handler import get_file, download_file, count_files_in_subfolders
+from handlers.cache_handler import commit_cache, parse_cache, stash_cache
+from handlers.print_handler import print_progress, human_readable_size
 
 """
 NOVA Clippy
@@ -70,6 +70,7 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
         path: Annotated[Optional[Path], typer.Argument(help="A pasta onde os ficheiros do CLIP serão guardados. (opcional)", show_default=False)] = None,
         force_relogin: Annotated[bool, typer.Option(help="Ignora as credenciais guardadas em sistema.")] = False,
         auto: Annotated[bool, typer.Option(help="Escolhe automaticamente o ano lectivo mais recente.")] = True,
+        debug: Annotated[bool, typer.Option(help="Cria um ficheiro log.log para efeitos de debug.", hidden = True)] = False,
     ):
     """\bO Clippy é um simples web scrapper e gestor de downloads para a plataforma interna de e-learning da FCT-NOVA, o CLIP.
     O programa procura os ficheiros disponíveis nas páginas das cadeiras de um utilizador e sincroniza-os com uma pasta local.
@@ -82,6 +83,30 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
     |\\_/|      | Precisas de ajuda?    |
     \\___/      \\_______________________/
     """
+
+    # Logging
+    if debug:
+        log.getLogger().setLevel(log.DEBUG)  # This must be as verbose as the most verbose handler
+    else:
+        log.getLogger().setLevel(log.WARNING)
+
+    formatter = log.Formatter(
+        '%(asctime)s.%(msecs)03d [%(levelname)s] %(module)s - %(funcName)s [%(lineno)s]: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
+
+    console_logging = log.StreamHandler()
+    console_logging.setLevel(log.WARNING)
+    console_logging.setFormatter(formatter)
+    log.getLogger().addHandler(console_logging)
+
+    if debug:
+        file_logging = log.FileHandler('log.log')
+        file_logging.setLevel(log.DEBUG)
+        file_logging.setFormatter(formatter)
+        log.getLogger().addHandler(file_logging)
+
+    if path is None: print(f"A iniciar o Clippy na directoria {Path.cwd()}...")
     # Check valid path
     path = check_path(path)
 

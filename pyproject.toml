@@ -6,13 +6,13 @@ authors = ["abtsousa <11749310+abtsousa@users.noreply.github.com>"]
 readme = "README.md"
 
 packages = [
-    { include = "./nova_clippy/modules/" },
-    { include = "./nova_clippy/handlers/" },
-    { include = "./nova_clippy/config.py" },
+    { include = "./modules/" },
+    { include = "./handlers/" },
+    { include = "nova_clippy"}
 ]
 
 [tool.poetry.scripts]
-clippy = "nova_clippy.main:app"
+nova-clippy = "nova_clippy.main:app"
 
 [tool.poetry.dependencies]
 # python

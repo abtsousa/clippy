@@ -2,7 +2,7 @@ import re, requests
 import logging as log
 from time import sleep
 from InquirerPy import inquirer
-from ..modules.LoginError import LoginError
+from modules.LoginError import LoginError
 from .print_handler import print_progress
 
 #Config
