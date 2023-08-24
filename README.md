@@ -22,7 +22,10 @@ Clippy successfully navigates the site in order to scrape it, and compares it to
 
 ## Install
 
-pip install git+https://github.com/abtsousa/nova-clippy/archive/v0.9b.zip
+[Latest Python](https://www.python.org/downloads/) must be installed.
+
+Install with pip:
+```pip install git+https://github.com/abtsousa/nova-clippy/archive/v0.9b.zip```
 
 **Report any bugs to ab.sousa@campus.fct.unl.pt**. Use ```--debug``` option to generate a log.log file that you can attach in the email.
 
