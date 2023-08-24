@@ -61,7 +61,7 @@ with a similar structure, keeping it in sync with the server.
 __author__ = "Afonso Bras Sousa (LEI-65263)"
 __maintainer__ = "Afonso Bras Sousa"
 __email__ = "ab.sousa@campus.fct.unl.pt"
-__version__ = "0.9b"
+__version__ = "0.9b2"
 
 app = typer.Typer()
 
@@ -165,7 +165,7 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
         download_sizestart = sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())
         print_progress(4, "A transferir ficheiros em falta...")
         _ = threadpool_execute(download_file, files, max_workers=4)
-        print("Todos os ficheiros foram transferidos.")
+        print_progress(4,"Todos os ficheiros foram transferidos.")
     else:
         print_progress(4, "Não há ficheiros a transferir.")
 
@@ -179,7 +179,7 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
         download_time = (time.time_ns() - download_timestart) / 10**9
         download_size = (sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())) - download_sizestart
         unique_folders = sorted({str(file[0].parent) for file in files})
-        print(f"Transferidos {len(files)} ficheiros ({human_readable_size(download_size)} em [dim cyan bold]{download_time}[/dim cyan bold]s) para as pastas:")
+        print(f"Transferidos {len(files)} ficheiros ({human_readable_size(download_size)} em [dim cyan bold]{download_time}[/dim cyan bold]s) para as pastas:",flush=True)
         print("\n".join(f"'{folder}'" for folder in unique_folders))
     else:
         print("Não foram encontrados ficheiros novos.")

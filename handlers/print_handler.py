@@ -1,6 +1,6 @@
 def print_progress(progress: int, msg: str, max: int = 6):
     bar = progress*"▰"+(max-progress)*"▱"
-    print(f"{bar} {msg}")
+    print(f"\033[K\r{bar} {msg}", flush=True) #force line clear before print
 
 def human_readable_size(size_in_bytes):
     units = ["B", "KB", "MB", "GB", "TB"]
