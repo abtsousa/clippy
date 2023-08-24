@@ -52,8 +52,9 @@ Usage: nova-clippy [OPTIONS] [PATH]
 --help            Show this message and exit.
 ```
 
-## License
+## License and Copyright
 
 GPL v3.
 
-(c) 2023 Afonso Brás Sousa.
+Clippy (c) 2023 Afonso Brás Sousa.
+CLIP (c) 2023 FCT NOVA - Faculdade de Ciências e Tecnologia, 2829-516 Caparica, Portugal
