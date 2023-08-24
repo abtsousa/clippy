@@ -1,4 +1,4 @@
-# NOVA Clippy
+# NOVA Clippy (BETA)
 
 A simple web scraper and downloader for FCT-NOVA's internal e-learning platform, CLIP.
 
@@ -20,9 +20,15 @@ Clippy successfully navigates the site in order to scrape it, and compares it to
 \___/      \_______________________/
 ```
 
+## Install
+
+pip install git+https://github.com/abtsousa/nova-clippy/archive/v0.9b.zip
+
+**Report any bugs to ab.sousa@campus.fct.unl.pt**. Use ```--debug``` option to generate a log.log file that you can attach in the email.
+
 ## Usage
 
-Usage: clippy [OPTIONS] [PATH]
+Usage: nova-clippy [OPTIONS] [PATH]
 
 ### Arguments
 
