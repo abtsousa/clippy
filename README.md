@@ -1,4 +1,5 @@
 # NOVA Clippy (BETA)
+by Afonso Brás Sousa
 
 A simple web scraper and downloader for FCT-NOVA's internal e-learning platform, CLIP.
 
