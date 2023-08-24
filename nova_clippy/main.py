@@ -85,26 +85,27 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
     """
 
     # Logging
-    if debug:
-        log.getLogger().setLevel(log.DEBUG)  # This must be as verbose as the most verbose handler
-    else:
-        log.getLogger().setLevel(log.WARNING)
+    logger = log.getLogger()
+    logger.handlers.clear() #clear default logger
+    logger.setLevel(log.DEBUG if debug else log.WARNING)
 
-    formatter = log.Formatter(
-        '%(asctime)s.%(msecs)03d [%(levelname)s] %(module)s - %(funcName)s [%(lineno)s]: %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-    )
-
+    #Console log
+    console_formatter = log.Formatter('[%(levelname)s] %(message)s')
     console_logging = log.StreamHandler()
-    console_logging.setLevel(log.WARNING)
-    console_logging.setFormatter(formatter)
-    log.getLogger().addHandler(console_logging)
+    console_logging.setLevel(log.DEBUG if debug else log.WARNING)
+    console_logging.setFormatter(console_formatter)
+    logger.addHandler(console_logging)
 
+    #File log
     if debug:
-        file_logging = log.FileHandler('log.log')
+        formatter = log.Formatter(
+            '%(asctime)s.%(msecs)03d [%(levelname)s] %(module)s - %(funcName)s [%(lineno)s]: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S',
+        )
+        file_logging = log.FileHandler('debug.log')
         file_logging.setLevel(log.DEBUG)
         file_logging.setFormatter(formatter)
-        log.getLogger().addHandler(file_logging)
+        logger.addHandler(file_logging)
 
     if path is None: print(f"A iniciar o Clippy na directoria {Path.cwd()}...")
     # Check valid path

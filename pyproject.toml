@@ -17,12 +17,10 @@ nova-clippy = "nova_clippy.main:app"
 
 [tool.poetry.dependencies]
 # python
-python = "^3.11"
+python = "^3.8"
 # global
 typer = {extras = ["all"], version = "^0.9.0"}
 inquirerpy = "^0.3.4"
-
-# local
 requests = "^2.31.0"
 appdirs = "^1.4.4"
 bs4 = "^0.0.1"
