@@ -41,7 +41,7 @@ Usage: nova-clippy [OPTIONS] [PATH]
 
 ### Arguments
 
-[PATH]  The folder where CLIP files will be stored.
+[PATH]  The folder where CLIP files will be stored. Will use current working directory if empty.
 
 ### Options
 
