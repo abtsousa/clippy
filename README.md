@@ -1,6 +1,8 @@
 # NOVA Clippy (BETA)
 by Afonso Brás Sousa
 
+[![](https://img.shields.io/github/stars/abtsousa/nova-clippy)](https://github.com/abtsousa/nova-clippy/stargazers) [![](https://img.shields.io/github/license/abtsousa/nova-clippy)](https://github.com/abtsousa/nova-clippy/blob/master/LICENSE)
+
 A simple web scraper and downloader for FCT-NOVA's internal e-learning platform, CLIP.
 
 The program scrapes a user's courses for available downloads and syncs them with a local folder.
@@ -22,6 +24,8 @@ Clippy successfully navigates the site in order to scrape it, and compares it to
 ```
 
 ## Install
+
+**NOTE:** This program is in beta. [Star this repository](https://github.com/abtsousa/nova-clippy/stargazers) to support the project and be notified of updates!
 
 [Latest Python](https://www.python.org/downloads/) must be installed.
 
@@ -47,3 +51,9 @@ Usage: nova-clippy [OPTIONS] [PATH]
 --auto            Automatically chooses the latest year available. [default: auto]                                                                            │
 --help            Show this message and exit.
 ```
+
+## License
+
+GPL v3.
+
+(c) 2023 Afonso Brás Sousa.
