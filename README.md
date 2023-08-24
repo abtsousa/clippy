@@ -3,7 +3,7 @@ by Afonso Brás Sousa
 
 [![](https://img.shields.io/github/stars/abtsousa/nova-clippy)](https://github.com/abtsousa/nova-clippy/stargazers) [![](https://img.shields.io/github/license/abtsousa/nova-clippy)](https://github.com/abtsousa/nova-clippy/blob/master/LICENSE)
 
-A simple web scraper and downloader for FCT-NOVA's internal e-learning platform, CLIP.
+A simple web scraper and downloader for NOVA School of Science and Technology's internal e-learning platform, CLIP.
 
 The program scrapes a user's courses for available downloads and syncs them with a local folder.
 
