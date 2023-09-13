@@ -73,7 +73,7 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
         debug: Annotated[bool, typer.Option(help="Cria um ficheiro log.log para efeitos de debug.", hidden = True)] = False,
     ):
     """\bO Clippy é um simples web scrapper e gestor de downloads para a plataforma interna de e-learning da FCT-NOVA, o CLIP.
-    O programa procura os ficheiros disponíveis nas páginas das cadeiras de um utilizador e sincroniza-os com uma pasta local.
+    O programa navega o CLIP à procura de ficheiros nas páginas das cadeiras de um utilizador e sincroniza-os com uma pasta local.
      __                 
     /  \\        _______________________ 
     |  |       /                       \\
