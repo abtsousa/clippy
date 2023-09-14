@@ -5,6 +5,7 @@ import logging as log
 import concurrent.futures as cf
 import typer
 import time
+import sys
 from typing_extensions import Annotated
 from typing import Optional
 from InquirerPy import inquirer
@@ -80,7 +81,7 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
     @  @       | Parece que estás a    |
     || ||      | tentar descarregar    |
     || ||   <--| ficheiros do CLIP.    |
-    |\\_/|      | Precisas de ajuda?    |
+    |\\_/|      | Posso ajudar-te?      |
     \\___/      \\_______________________/
     """
 
@@ -321,4 +322,9 @@ def search_files_in_category(category: str, catID: str, course: Course, full_pat
         pass
 
 if __name__ == "__main__":
-    app()
+    try:
+        app()
+    except Exception as e:
+        print(f"Ocorreu um erro.\n{e}")
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        input("Pressiona ENTER para terminar o programa.") #TODO pyinstaller only
