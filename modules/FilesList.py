@@ -71,7 +71,7 @@ class FilesList:
             pd.DataFrame: A DataFrame containing data for the downloads table.
         """
         df = pd.DataFrame(columns=['Nome', 'Link', 'Data', 'Tamanho', 'Docente'])
-        table = html.find_all("form")[1].find("table") # get downloads table TODO parse file size
+        table = html.find('th', string='Documentos').find_parent('table')
         for row in table.find_all("tr", {'bgcolor': True}):
             columns = row.find_all("td")
 
