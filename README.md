@@ -47,7 +47,7 @@ Usage: nova-clippy [OPTIONS] [PATH]
 
 ```text
 --username        The user's username in CLIP.
---force-relogin   Ignores saved login credentials Ignora as credenciais guardadas em sistema. [default: no-force-relogin]                                                                        │
+--force-relogin   Ignores saved login credentials. [default: no-force-relogin]                                                                        │
 --auto            Automatically chooses the latest year available. [default: auto]                                                                            │
 --help            Show this message and exit.
 ```
