@@ -62,7 +62,7 @@ with a similar structure, keeping it in sync with the server.
 __author__ = "Afonso Bras Sousa (LEI-65263)"
 __maintainer__ = "Afonso Bras Sousa"
 __email__ = "ab.sousa@campus.fct.unl.pt"
-__version__ = "0.9b"
+__version__ = "0.9b2"
 
 app = typer.Typer()
 
@@ -74,7 +74,7 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
         debug: Annotated[bool, typer.Option(help="Cria um ficheiro log.log para efeitos de debug.", hidden = True)] = False,
     ):
     """\bO Clippy é um simples web scrapper e gestor de downloads para a plataforma interna de e-learning da FCT-NOVA, o CLIP.
-    O programa procura os ficheiros disponíveis nas páginas das cadeiras de um utilizador e sincroniza-os com uma pasta local.
+    O programa navega o CLIP à procura de ficheiros nas páginas das cadeiras de um utilizador e sincroniza-os com uma pasta local.
      __                 
     /  \\        _______________________ 
     |  |       /                       \\
@@ -86,26 +86,27 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
     """
 
     # Logging
-    if debug:
-        log.getLogger().setLevel(log.DEBUG)  # This must be as verbose as the most verbose handler
-    else:
-        log.getLogger().setLevel(log.WARNING)
+    logger = log.getLogger()
+    logger.handlers.clear() #clear default logger
+    logger.setLevel(log.DEBUG if debug else log.WARNING)
 
-    formatter = log.Formatter(
-        '%(asctime)s.%(msecs)03d [%(levelname)s] %(module)s - %(funcName)s [%(lineno)s]: %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-    )
-
+    #Console log
+    console_formatter = log.Formatter('[%(levelname)s] %(message)s')
     console_logging = log.StreamHandler()
-    console_logging.setLevel(log.WARNING)
-    console_logging.setFormatter(formatter)
-    log.getLogger().addHandler(console_logging)
+    console_logging.setLevel(log.DEBUG if debug else log.WARNING)
+    console_logging.setFormatter(console_formatter)
+    logger.addHandler(console_logging)
 
+    #File log
     if debug:
-        file_logging = log.FileHandler('log.log')
+        formatter = log.Formatter(
+            '%(asctime)s.%(msecs)03d [%(levelname)s] %(module)s - %(funcName)s [%(lineno)s]: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S',
+        )
+        file_logging = log.FileHandler('debug.log')
         file_logging.setLevel(log.DEBUG)
         file_logging.setFormatter(formatter)
-        log.getLogger().addHandler(file_logging)
+        logger.addHandler(file_logging)
 
     if path is None: print(f"A iniciar o Clippy na directoria {Path.cwd()}...")
     # Check valid path
@@ -165,7 +166,7 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
         download_sizestart = sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())
         print_progress(4, "A transferir ficheiros em falta...")
         _ = threadpool_execute(download_file, files, max_workers=4)
-        print("Todos os ficheiros foram transferidos.")
+        print_progress(4,"Todos os ficheiros foram transferidos.")
     else:
         print_progress(4, "Não há ficheiros a transferir.")
 
@@ -179,7 +180,7 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
         download_time = (time.time_ns() - download_timestart) / 10**9
         download_size = (sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())) - download_sizestart
         unique_folders = sorted({str(file[0].parent) for file in files})
-        print(f"Transferidos {len(files)} ficheiros ({human_readable_size(download_size)} em [dim cyan bold]{download_time}[/dim cyan bold]s) para as pastas:")
+        print(f"Transferidos {len(files)} ficheiros ({human_readable_size(download_size)} em [dim cyan bold]{download_time}[/dim cyan bold]s) para as pastas:",flush=True)
         print("\n".join(f"'{folder}'" for folder in unique_folders))
     else:
         print("Não foram encontrados ficheiros novos.")

@@ -12,7 +12,6 @@ from appdirs import user_data_dir
 
 def load_config():
     """Load a basic user config."""
-    cfgpath = Path(user_data_dir("clippy")) / "config.ini"
     if Path.is_file(cfgpath):
         log.info(f"Ficheiro de configuração encontrado: {cfgpath}")
         try:
@@ -32,7 +31,6 @@ def load_config():
 def save_config():
     """Save a basic user config."""
     global username, password
-    cfgpath = Path(user_data_dir("clippy")) / "config.ini"
     config = configparser.ConfigParser()
     try:
         config.read(cfgpath)
@@ -82,6 +80,8 @@ def session_mount():
 
 # Domain
 domain='https://clip.fct.unl.pt'
+
+cfgpath = Path(user_data_dir("nova-clippy")) / "config.ini"
 
 session_mount()
 username, password = load_config()
