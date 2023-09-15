@@ -40,7 +40,7 @@ Install with pip:
 
 ## Usage
 
-Usage: nova-clippy [OPTIONS] [PATH]
+Usage: `nova-clippy [OPTIONS] [PATH]`
 
 ### Arguments
 
