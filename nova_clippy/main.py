@@ -49,11 +49,6 @@ with a similar structure, keeping it in sync with the server.
 \___/      \_______________________/
 """
 
-# TODO create package https://typer.tiangolo.com/tutorial/package/ and https://stackoverflow.com/questions/20101834/pip-install-from-git-repo-branch
-# TODO Distribute as exe?
-# TODO remove pandas and any other unneccessary dependencies
-# TODO generate dependencies?
-
 # The code mimics the site's structure, as follows:
 #       CLIP: Academic year   >> Course >> Document subcategory >> Files list >>   File
 #     Clippy:  CourseList     >> Course >>      CatCount        >>  FilesList >> ClipFile
@@ -62,9 +57,14 @@ with a similar structure, keeping it in sync with the server.
 __author__ = "Afonso Bras Sousa (LEI-65263)"
 __maintainer__ = "Afonso Bras Sousa"
 __email__ = "ab.sousa@campus.fct.unl.pt"
-__version__ = "0.9.3"
+__version__ = "0.9.4"
 
 app = typer.Typer()
+
+def version_callback(value: bool):
+    if value:
+        print(f"NOVA Clippy version {__version__}")
+        raise typer.Exit()
 
 @app.command()
 def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLIP.", show_default=False)] = None,
@@ -72,6 +72,8 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
         force_relogin: Annotated[bool, typer.Option(help="Ignora as credenciais guardadas em sistema.")] = False,
         auto: Annotated[bool, typer.Option(help="Escolhe automaticamente o ano lectivo mais recente.")] = True,
         debug: Annotated[bool, typer.Option(help="Cria um ficheiro log.log para efeitos de debug.", hidden = True)] = False,
+        version: Annotated[Optional[bool], typer.Option("--version", callback=version_callback, is_eager=True),
+    ] = None,
     ):
     """\bO Clippy é um simples web scrapper e gestor de downloads para a plataforma interna de e-learning da FCT-NOVA, o CLIP.
     O programa navega o CLIP à procura de ficheiros nas páginas das cadeiras de um utilizador e sincroniza-os com uma pasta local.
@@ -327,5 +329,5 @@ if __name__ == "__main__":
         app()
     except Exception as e:
         print(f"Ocorreu um erro.\n{e}")
-    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    if getattr(sys, 'frozen', False):
         input("Pressiona ENTER para terminar o programa.") #TODO pyinstaller only

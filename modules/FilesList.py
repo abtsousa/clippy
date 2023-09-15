@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup as bs
 from .ClipFile import ClipFile
-import pandas as pd
 
 #Config
 import nova_clippy.config as cfg
@@ -34,13 +33,23 @@ class FilesList:
         Returns:
             [ClipFile]: An array of ClipFile instances.
         """
-        files = []
-        table = cls.get_files_table(cls,html)
-        for row in table.index:
-            file = ClipFile(table.iloc[row])
-            files.append(file)
+        flist = []
+        table = html.find('th', string='Documentos').find_parent('table')
+        for row in table.find_all("tr", {'bgcolor': True}):
+            columns = row.find_all("td")
 
-        return files
+            if columns != []:
+                name = columns[0].text.strip()
+                link = cfg.domain + columns[1].find("a").get("href")
+                date = columns[2].text.strip()
+                size = cls.convert_str_to_byte(columns[3].text.strip())
+                teacher = columns[4].text.strip()
+
+                file = ClipFile(name,link,date,size,teacher)
+
+                flist.append(file)
+        
+        return flist
     
     def convert_str_to_byte(size: str) -> int:
         """
@@ -59,31 +68,3 @@ class FilesList:
         factor = 1024 ** idx               # ** is the "exponent" operator - you can use it instead of math.pow()
         num += 1 # Hack to get the right size since the size in the html table actually rounds it wrong
         return num * factor
-
-    def get_files_table(self, html: bs) -> pd.DataFrame:
-        """
-        Extract the table from the HTML content.
-
-        Args:
-            html (bs): Beautiful Soup object containing the HTML content of the table.
-
-        Returns:
-            pd.DataFrame: A DataFrame containing data for the downloads table.
-        """
-        df = pd.DataFrame(columns=['Nome', 'Link', 'Data', 'Tamanho', 'Docente'])
-        table = html.find('th', string='Documentos').find_parent('table')
-        for row in table.find_all("tr", {'bgcolor': True}):
-            columns = row.find_all("td")
-
-            if columns != []:
-                nome = columns[0].text.strip()
-                link = cfg.domain + columns[1].find("a").get("href")
-                data = columns[2].text.strip()
-                tamanho = self.convert_str_to_byte(columns[3].text.strip())
-                docente = columns[4].text.strip()
-
-                row = pd.DataFrame({"Nome": [nome], "Link": [link], "Data": [data], "Tamanho": [tamanho], "Docente": [docente]})
-
-                df = pd.concat([df, row], ignore_index=True)
-        
-        return df

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nova_clippy"
-version = "0.9.3"
+version = "0.9.4"
 description = "A simple web scraper and downloader for FCT-NOVA's internal e-learning platform, CLIP."
 authors = ["abtsousa <11749310+abtsousa@users.noreply.github.com>"]
 license = "GPL-3.0-only"
@@ -24,7 +24,6 @@ inquirerpy = "^0.3.4"
 requests = "^2.31.0"
 appdirs = "^1.4.4"
 bs4 = "^0.0.1"
-pandas = "^2.0.3"
 tqdm = "^4.66.1"
 
 [build-system]

@@ -1,7 +1,6 @@
 from datetime import datetime
 from pathlib import Path
 import os
-import pandas as pd
 
 #Config
 import nova_clippy.config as cfg
@@ -10,10 +9,7 @@ class ClipFile:
     """
     Represents a file in CLIP, and its associated information.
 
-    Args:
-        row (pd.Series): A pandas Series containing data for the file.
-
-    Attributes:
+    Args / Attributes:
         name (str): The name of the file.
         link (str): The download link for the file.
         mtime (datetime.datetime): The modification time of the file.
@@ -33,18 +29,15 @@ class ClipFile:
 
     """
 
-    def __init__(self, row: pd.Series):
+    def __init__(self, name : str, link : str, mtime, size, teacher : str):
         """
-        Initialize a ClipFile instance based on a pandas Series.
-
-        Args:
-            row (pd.Series): A pandas Series containing data for the clip file.
+        Initialize a ClipFile instance.
         """
-        self.name = row.at["Nome"]
-        self.link = row.at["Link"]
-        self.mtime = datetime.strptime(row.at["Data"], "%Y-%m-%d %H:%M")
-        self.size = row.at["Tamanho"]
-        self.teacher = row.at["Docente"]
+        self.name = name
+        self.link = link
+        self.mtime = datetime.strptime(mtime, "%Y-%m-%d %H:%M")
+        self.size = size
+        self.teacher = teacher
   
     def __str__(self):
         """
