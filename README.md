@@ -15,17 +15,6 @@ Academic year >> Course documents >> Document subcategory >> Files list
 
 Clippy successfully navigates the site in order to scrape it, and compares it to a local folder with a similar structure, keeping it in sync with the server.
 
-```text
- __                 
-/  \        _______________________ 
-|  |       /                       \
-@  @       | It looks like you     |
-|| ||      | are downloading files |
-|| ||   <--| from CLIP. Do you     |
-|\_/|      | need assistance?      |
-\___/      \_______________________/
-```
-
 ## Install
 
 **NOTE:** This program is in beta. [Star this repository](https://github.com/abtsousa/nova-clippy/stargazers) to support the project and be notified of updates!
