@@ -1,8 +1,11 @@
-# NOVA Clippy (BETA)
+#  NOVA Clippy (BETA)
 by Afonso Brás Sousa
 
 [![](https://img.shields.io/github/stars/abtsousa/nova-clippy)](https://github.com/abtsousa/nova-clippy/stargazers) [![](https://img.shields.io/github/license/abtsousa/nova-clippy)](https://github.com/abtsousa/nova-clippy/blob/master/LICENSE)
 
+<p align="center">
+    <img src="clippy.png" style="width: 100px" alt="NOVA Clippy logo">
+</p>
 A simple web scraper and downloader for NOVA School of Science and Technology's internal e-learning platform, CLIP.
 
 The program scrapes a user's courses for available downloads and syncs them with a local folder.
