@@ -76,7 +76,7 @@ def session_mount():
     session.mount("https://", adapter)
     session.mount("http://", adapter)
 
-    log.debug("Session mounted successfully.")
+    log.debug("Sessão montada com sucesso.")
 
 # Domain
 domain='https://clip.fct.unl.pt'
@@ -85,4 +85,4 @@ cfgpath = Path(user_data_dir("clippy")) / "config.ini"
 
 session_mount()
 username, password = load_config()
-log.info("Config.py loaded.")
+log.info("Config.py carregado.")

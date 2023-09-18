@@ -59,11 +59,11 @@ __maintainer__ = "Afonso Bras Sousa"
 __email__ = "ab.sousa@campus.fct.unl.pt"
 __version__ = "0.9.4"
 
-app = typer.Typer()
+app = typer.Typer(add_completion=False)
 
 def version_callback(value: bool):
     if value:
-        print(f"NOVA Clippy version {__version__}")
+        print(f"Clippy version {__version__}")
         raise typer.Exit()
 
 @app.command()
