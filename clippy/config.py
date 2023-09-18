@@ -78,6 +78,18 @@ def session_mount():
 
     log.debug("Sessão montada com sucesso.")
 
+def show_disclaimer():
+    """Shows the disclaimer if it's the first time running the program."""
+    discpath = cfgpath.parent / "disclaimer_shown"
+    if not Path.is_file(discpath):
+        print('NOTA: Este programa é fornecido "tal como está" e destina-se estritamente ao uso privado, \
+limitado às suas funcionalidades de transferência de arquivos. Ao utilizar este programa, \
+o utilizador concorda em isentar o autor de qualquer responsabilidade por danos ou \
+consequências decorrentes de uso inadequado ou inesperado, incluindo, mas não se limitando a, \
+bugs, erros de servidor ou uso indevido de funcionalidades não previstas inicialmente. Se não \
+concordar, desinstale imediatamente o programa. Esta mensagem não aparecerá novamente.')
+        Path.touch(discpath)
+
 # Domain
 domain='https://clip.fct.unl.pt'
 

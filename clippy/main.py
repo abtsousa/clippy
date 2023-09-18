@@ -110,6 +110,9 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
         file_logging.setFormatter(formatter)
         logger.addHandler(file_logging)
 
+    # Disclaimer
+    cfg.show_disclaimer()
+    
     if path is None: print(f"A iniciar o Clippy na directoria {Path.cwd()}...")
     # Check valid path
     path = check_path(path)
