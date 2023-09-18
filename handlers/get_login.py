@@ -4,6 +4,7 @@ from time import sleep
 from InquirerPy import inquirer
 from modules.LoginError import LoginError
 from .print_handler import print_progress
+from .get_html import get_html
 
 #Config
 import clippy.config as cfg
@@ -44,7 +45,8 @@ def get_login(username: str = None,password: str = None) -> int:
         cfg.update_credentials(username, password)
 
         # Return user ID
-        id = re.search(r"\/utente\/eu\/aluno\?aluno=(\d+)",response.text).group(1)
+        userHTML = get_html("https://clip.fct.unl.pt/utente/eu")
+        id = re.search(r"\/utente\/eu\/aluno\?aluno=(\d+)",userHTML).group(1)
         return int(id)
 
 
