@@ -10,7 +10,7 @@ por Afonso Brás Sousa
 
 ### 🇬🇧 [English version here / Clica aqui para ler a descrição em Inglês](README.md) 🇬🇧
 
-O Clippy é um simples web scrapper e gestor de downloads para a plataforma interna de e-learning da FCT-NOVA, o CLIP.
+O Clippy é um simples web scraper e gestor de downloads para a plataforma interna de e-learning da FCT-NOVA, o CLIP.
 
 O programa navega o CLIP à procura de ficheiros nas páginas das cadeiras de um utilizador e sincroniza-os com uma pasta local.
 
