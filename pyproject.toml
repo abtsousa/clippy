@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "nova_clippy"
-version = "0.9.4"
+name = "clippy"
+version = "0.9.5"
 description = "A simple web scraper and downloader for FCT-NOVA's internal e-learning platform, CLIP."
 authors = ["abtsousa <11749310+abtsousa@users.noreply.github.com>"]
 license = "GPL-3.0-only"
@@ -9,11 +9,11 @@ readme = "README.md"
 packages = [
     { include = "./modules/" },
     { include = "./handlers/" },
-    { include = "nova_clippy"}
+    { include = "clippy"}
 ]
 
 [tool.poetry.scripts]
-nova-clippy = "nova_clippy.main:app"
+clippy = "clippy.main:app"
 
 [tool.poetry.dependencies]
 # python

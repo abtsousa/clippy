@@ -81,7 +81,7 @@ def session_mount():
 # Domain
 domain='https://clip.fct.unl.pt'
 
-cfgpath = Path(user_data_dir("nova-clippy")) / "config.ini"
+cfgpath = Path(user_data_dir("clippy")) / "config.ini"
 
 session_mount()
 username, password = load_config()
