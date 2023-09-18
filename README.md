@@ -32,11 +32,13 @@ Please note that the program is only available in Portuguese while it's still in
 
 **NOTE:** This program is in beta. [Star this repository](https://github.com/abtsousa/clippy/stargazers) to support the project and be notified of updates!
 
-[Python](https://www.python.org/downloads/) ≥ v3.8 must be installed.
+[Python](https://www.python.org/downloads/) ≥ v3.8 must be installed to build from source.
 
-Install with pip:
+**Recommended (All platforms):** Build and install with pip:
 
-```pip install https://github.com/abtsousa/clippy/archive/v0.9b2.zip```
+```pip install https://github.com/abtsousa/clippy/archive/stable.zip```
+
+**Alternative (Windows only):** Download clippy.exe from the [latest release page](https://github.com/abtsousa/clippy/releases/latest) and move it to where you want Clippy to save your files, then run it.
 
 **Report any bugs here or to `ab.sousa@campus.fct[...etc]`**. You can use the `--debug` option to generate a debug.log file that you can attach in the email.
 
