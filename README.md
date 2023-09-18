@@ -46,9 +46,9 @@ Usage: `clippy [OPTIONS] [PATH]`
 
 ### Examples
 
-`clippy` Saves the files on a CLIP subfolder of the current path.
-`clippy --force-relogin C:\CLIP` Ignores saved credentials and saves the files in a CLIP folder inside the C: drive.
-`clippy --no-auto ~/CLIP` Lets the user choose which year they want to download and saves the files in a CLIP subfolder inside the home directory.
+- `clippy` Saves the files on a CLIP subfolder of the current path.
+- `clippy --force-relogin C:\CLIP` Ignores saved credentials and saves the files in a CLIP folder inside the C: drive.
+- `clippy --no-auto ~/CLIP` Lets the user choose which year they want to download and saves the files in a CLIP subfolder inside the home directory.
 
 ### Arguments
 

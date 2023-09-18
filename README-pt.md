@@ -44,9 +44,9 @@ Na consola: `clippy [OPÇÕES] [CAMINHO]`
 
 ### Exemplos
 
-`clippy` Guarda os ficheiros numa subpasta CLIP no caminho actual.
-`clippy --force-relogin C:\CLIP` Ignora as credenciais guardadas e guarda os ficheiros na pasta C:\CLIP.
-`clippy --no-auto ~/CLIP` Deixa o utilizador escolher o ano que quer descarregar e guarda os ficheiros na pasta ~/CLIP.
+- `clippy` Guarda os ficheiros numa subpasta CLIP no caminho actual.
+- `clippy --force-relogin C:\CLIP` Ignora as credenciais guardadas e guarda os ficheiros na pasta C:\CLIP.
+- `clippy --no-auto ~/CLIP` Deixa o utilizador escolher o ano que quer descarregar e guarda os ficheiros na pasta ~/CLIP.
 
 ### Argumentos
 
