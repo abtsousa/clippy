@@ -182,7 +182,7 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
         download_time = (time.time_ns() - download_timestart) / 10**9
         download_size = (sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())) - download_sizestart
         unique_folders = sorted({str(file[0].parent) for file in files})
-        print(f"Transferidos {len(files)} ficheiros ({human_readable_size(download_size)} em [dim cyan bold]{download_time}[/dim cyan bold]s) para as pastas:",flush=True)
+        print(f"Transferidos {len(files)} ficheiros ({human_readable_size(download_size)} em [dim cyan bold]{download_time}[/dim cyan bold]s = {human_readable_size(download_size/download_time)}/s) para as pastas:",flush=True)
         print("\n".join(f"'{folder}'" for folder in unique_folders))
     else:
         print("Não foram encontrados ficheiros novos.")
