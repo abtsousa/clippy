@@ -1,5 +1,5 @@
 #  Clippy
-## Um gestor de downloads para a plataforma CLIP da FCT-NOVA (BETA)
+## Um gestor de downloads para a plataforma CLIP da FCT-NOVA (BETA) <img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24">
 por Afonso Brás Sousa
 
 [![](https://img.shields.io/github/stars/abtsousa/clippy)](https://github.com/abtsousa/clippy/stargazers) [![](https://img.shields.io/github/license/abtsousa/clippy)](https://github.com/abtsousa/clippy/blob/master/LICENSE)
@@ -20,6 +20,7 @@ Ano >> Documentos da cadeira >> Subcategoria >> Ficheiros
 O Clippy navega o site e compara os ficheiros disponíveis com uma pasta local, sincronizando-a com o servidor.
 
 ## Funcionalidades
+- Multiplataforma (testado em MacOS, Linux e Windows)
 - Extremamente rápido graças à sua execução assíncrona (permite verificar até 8 cadeiras ao mesmo tempo).
 - Transfere múltiplos ficheiros (até 4 ficheiros em simultâneo).
 - Sincronização automática de ficheiros entre o CLIP e a pasta do utilizador.
