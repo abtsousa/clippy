@@ -19,6 +19,8 @@ Academic year >> Course documents >> Document subcategory >> Files list
 
 Clippy successfully navigates the site in order to scrape it, and compares it to a local folder with a similar structure, keeping it in sync with the server.
 
+Please note that the program is only available in Portuguese while it's still in BETA.
+
 ## Install
 
 **NOTE:** This program is in beta. [Star this repository](https://github.com/abtsousa/clippy/stargazers) to support the project and be notified of updates!
@@ -43,8 +45,8 @@ Usage: `clippy [OPTIONS] [PATH]`
 
 ```text
 --username        The user's username in CLIP.
---force-relogin   Ignores saved login credentials. [default: no-force-relogin]                                                                        │
---auto            Automatically chooses the latest year available. [default: auto]                                                                            │
+--force-relogin   Ignores saved login credentials.
+--auto            Automatically chooses the latest year available.
 --help            Show this message and exit.
 ```
 
