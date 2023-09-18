@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup as bs
 from .ClipFile import ClipFile
 
 #Config
-import nova_clippy.config as cfg
+import clippy.config as cfg
 
 class FilesList:
     """

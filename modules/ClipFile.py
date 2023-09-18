@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 
 #Config
-import nova_clippy.config as cfg
+import clippy.config as cfg
 
 class ClipFile:
     """

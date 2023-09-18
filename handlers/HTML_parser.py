@@ -8,7 +8,7 @@ from modules.CourseList import CourseList
 from modules.FilesList import FilesList
 
 #Config
-import nova_clippy.config as cfg
+import clippy.config as cfg
 
 def parse_years(user: int):
     """

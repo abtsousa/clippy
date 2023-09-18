@@ -12,7 +12,7 @@ from InquirerPy import inquirer
 from rich import print
 
 #Config
-import nova_clippy.config as cfg
+import clippy.config as cfg
 
 # Local modules
 from modules.LoginError import LoginError

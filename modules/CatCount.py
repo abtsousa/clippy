@@ -2,7 +2,7 @@ import re
 from bs4 import BeautifulSoup as bs
 
 #Config
-import nova_clippy.config as cfg # noqa: F401
+import clippy.config as cfg # noqa: F401
 
 class CatCount(dict):
     """

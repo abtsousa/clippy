@@ -9,7 +9,7 @@ import requests
 from modules.ClipFile import ClipFile
 
 #Config
-import nova_clippy.config as cfg
+import clippy.config as cfg
 
 def download_file(filepath: Path, url: str, file_size=0, file_mtime=None): #TODO refactor function with ClipFile and change file time
     """

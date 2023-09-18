@@ -6,7 +6,7 @@ from modules.LoginError import LoginError
 from .print_handler import print_progress
 
 #Config
-import nova_clippy.config as cfg
+import clippy.config as cfg
 
 count = 0
 def get_login(username: str = None,password: str = None) -> int:

@@ -1,7 +1,7 @@
 import re
 
 #Config
-import nova_clippy.config as cfg
+import clippy.config as cfg
 
 class Course:
     """

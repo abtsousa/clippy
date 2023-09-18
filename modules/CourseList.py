@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup as bs
 from .Course import Course
 
 #Config
-import nova_clippy.config as cfg
+import clippy.config as cfg
 
 class CourseList(list):
     """
