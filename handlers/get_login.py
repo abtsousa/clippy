@@ -45,9 +45,17 @@ def get_login(username: str = None,password: str = None) -> int:
         cfg.update_credentials(username, password)
 
         # Return user ID
-        userHTML = get_html("https://clip.fct.unl.pt/utente/eu")
-        id = re.search(r"\/utente\/eu\/aluno\?aluno=(\d+)",userHTML).group(1)
-        return int(id)
+        if response.url != "https://clip.fct.unl.pt/":
+            log.warning("Parece ter havido alterações à página inicial do CLIP (possíveis notificações ou avisos?). A tentar contornar...")
+            userHTML = get_html("https://clip.fct.unl.pt/utente/eu")
+        else:
+            userHTML = response.text
+        
+        try:
+            id = re.search(r"\/utente\/eu\/aluno\?aluno=(\d+)",userHTML).group(1)
+            return int(id)
+        except AttributeError:
+            raise RuntimeError("Não foi possível obter o ID do utilizador.")
 
 
     except requests.exceptions.ReadTimeout:

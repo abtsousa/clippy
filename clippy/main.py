@@ -330,7 +330,7 @@ def search_files_in_category(category: str, catID: str, course: Course, full_pat
 if __name__ == "__main__":
     try:
         app()
-    except Exception as e:
-        print(f"Ocorreu um erro.\n{e}")
+    except Exception:
+        log.exception("Ocorreu um erro.\n")
     if getattr(sys, 'frozen', False):
         input("Pressiona ENTER para terminar o programa.") #TODO pyinstaller only

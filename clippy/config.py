@@ -93,7 +93,6 @@ o utilizador concorda em isentar o autor de qualquer responsabilidade por danos 
 consequências decorrentes de uso inadequado ou inesperado, incluindo, mas não se limitando a, 
 bugs, erros de servidor ou uso indevido de funcionalidades não previstas inicialmente. Se não 
 concordar, desinstale imediatamente o programa. Esta mensagem não aparecerá novamente.
-
 '''
 
 # Domain
