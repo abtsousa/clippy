@@ -22,6 +22,7 @@ Clippy successfully navigates the site in order to scrape it, and compares it to
 Please note that the program is only available in Portuguese while it's still in BETA.
 
 ## Functionalities
+- Cross-platform (tested on MacOS, Arch Linux and Windows).
 - Extremely fast thanks to its asynchronous execution (allows checking up to 8 courses simultaneously).
 - Transfer multiple files (up to 4 files simultaneously).
 - Automatic file synchronization between CLIP and the user's folder.
