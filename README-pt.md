@@ -30,11 +30,13 @@ O Clippy navega o site e compara os ficheiros disponíveis com uma pasta local, 
 
 **NOTA:** O programa está em beta. [Deixa uma estrela](https://github.com/abtsousa/clippy/stargazers) para apoiares o projecto e seres notificado de actualizações.
 
-É necessário instalar o [Python](https://www.python.org/downloads/) ≥ v3.8.
+É necessário instalar o [Python](https://www.python.org/downloads/) ≥ v3.8 para instalar de raíz.
 
-Instala com o comando pip:
+**Recomendado (Windows/Mac/Linux):** Compila e instala de raíz com o comando pip:
 
-```pip install https://github.com/abtsousa/clippy/archive/v0.9b2.zip```
+```pip install https://github.com/abtsousa/clippy/archive/stable.zip```
+
+**Alternativa (Windows só):** Transfere o ficheiro clippy.exe da [página da versão mais recente](https://github.com/abtsousa/clippy/releases/latest) e cola-o na pasta onde queres que o Clippy guarde os ficheiros, depois corre o programa.
 
 **Se encontrares *bugs* envia-os por aqui ou para o email académico `ab.sousa@campus.fct[...etc]`**. Usa a opção `--debug` para gerar um ficheiro debug.log que deves anexar ao email.
 
