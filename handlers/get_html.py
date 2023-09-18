@@ -1,5 +1,6 @@
 #Config
 import clippy.config as cfg
+import logging as log
 
 def get_html(url: str):
     """
@@ -13,4 +14,5 @@ def get_html(url: str):
     """
     response = cfg.session.get(url)
     response.raise_for_status()  # Raise an exception for HTTP errors
+    log.debug(f"[HTML] Received HTML for {url}:\n\n{response.text}")
     return response.text
