@@ -1,5 +1,5 @@
 #  Clippy
-## A simple web scraper for FCT-NOVA's CLIP (BETA)
+## A simple web scraper for FCT-NOVA's CLIP (BETA) <img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24">
 by Afonso Brás Sousa
 
 [![](https://img.shields.io/github/stars/abtsousa/clippy)](https://github.com/abtsousa/clippy/stargazers) [![](https://img.shields.io/github/license/abtsousa/clippy)](https://github.com/abtsousa/clippy/blob/master/LICENSE)
@@ -22,6 +22,7 @@ Clippy successfully navigates the site in order to scrape it, and compares it to
 Please note that the program is only available in Portuguese while it's still in BETA.
 
 ## Functionalities
+- Cross-platform (tested on MacOS, Arch Linux and Windows).
 - Extremely fast thanks to its asynchronous execution (allows checking up to 8 courses simultaneously).
 - Transfer multiple files (up to 4 files simultaneously).
 - Automatic file synchronization between CLIP and the user's folder.
