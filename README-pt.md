@@ -1,12 +1,14 @@
+<div align="center">
+
+<img src="clippy.png" style="width: 100px" alt="NOVA Clippy logo">
+
 #  Clippy
+
 ## Um gestor de downloads para a plataforma CLIP da FCT-NOVA (BETA) <img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24">
+
 por Afonso Brás Sousa
 
 [![](https://img.shields.io/github/stars/abtsousa/clippy)](https://github.com/abtsousa/clippy/stargazers) [![](https://img.shields.io/github/license/abtsousa/clippy)](https://github.com/abtsousa/clippy/blob/master/LICENSE)
-
-<p align="center">
-    <img src="clippy.png" style="width: 100px" alt="NOVA Clippy logo">
-</p>
 
 ### 🇬🇧 [English version here / Clica aqui para ler a descrição em Inglês](README.md) 🇬🇧
 
