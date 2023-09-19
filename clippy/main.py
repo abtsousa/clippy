@@ -192,6 +192,12 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
     
     cfg.save_config()
 
+    if getattr(sys, 'frozen', False):
+        log.debug("A correr a partir de EXE!")
+        input("Pressiona ENTER para terminar o programa.") #TODO pyinstaller only
+    else:
+        log.debug("A correr a partir de script, a terminar o programa automaticamente...")
+
 
 def threadpool_execute(worker_function, items, max_workers=cfg.MAX_THREADS):
     results = []
@@ -332,5 +338,3 @@ if __name__ == "__main__":
         app()
     except Exception:
         log.exception("Ocorreu um erro.\n")
-    if getattr(sys, 'frozen', False):
-        input("Pressiona ENTER para terminar o programa.") #TODO pyinstaller only
