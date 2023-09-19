@@ -20,6 +20,7 @@ from modules.CourseList import CourseList
 from modules.Course import Course
 
 # Local functions
+from handlers.check_updates import get_latest_release
 from handlers.get_login import get_login
 from handlers.HTML_parser import parse_courses, parse_docs, parse_index, parse_years
 from handlers.file_handler import get_file, download_file, count_files_in_subfolders
@@ -112,6 +113,19 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
 
     # Disclaimer
     cfg.show_disclaimer()
+
+    # Check for update
+    latest_version = get_latest_release()
+    log.debug(f"Latest version: {latest_version}")
+    log.debug(f"Current version: {__version__}")
+    if latest_version != __version__:
+        update_text = f"[bold underline red]!!!Actualização disponível!!![/bold underline red] ({__version__} → {latest_version})\nTransfere a versão mais recente em: https://github.com/abtsousa/clippy/releases/latest"
+        print("*" * 45)
+        print(update_text)
+        print("*" * 45)
+        print()
+    else:
+        log.info("Estás a usar a versão mais recente da aplicação.")
     
     if path is None: print(f"A iniciar o Clippy na directoria {Path.cwd()}...")
     # Check valid path
