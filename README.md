@@ -1,12 +1,15 @@
-#  Clippy
+<div align="center">
+
+<img src="clippy.png" align="center" style="width: 100px" alt="NOVA Clippy logo">
+
+# Clippy
+
 ## A simple web scraper for FCT-NOVA's CLIP (BETA) <img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24">
+
 by Afonso Brás Sousa
 
 [![](https://img.shields.io/github/stars/abtsousa/clippy)](https://github.com/abtsousa/clippy/stargazers) [![](https://img.shields.io/github/license/abtsousa/clippy)](https://github.com/abtsousa/clippy/blob/master/LICENSE)
-
-<p align="center">
-    <img src="clippy.png" style="width: 100px" alt="NOVA Clippy logo">
-</p>
+</div>
 
 ### 🇵🇹 [Portuguese version here / Clica aqui para ler a descrição em Português](README-pt.md) 🇵🇹
 
