@@ -4,7 +4,9 @@
 
 #  Clippy
 
-## Um gestor de downloads para a plataforma CLIP da FCT-NOVA (BETA) <img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24">
+## Um gestor de downloads para a plataforma CLIP da FCT-NOVA (BETA)
+
+<img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24">
 
 por Afonso Brás Sousa
 
