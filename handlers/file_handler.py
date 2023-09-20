@@ -11,7 +11,7 @@ from modules.ClipFile import ClipFile
 #Config
 import clippy.config as cfg
 
-def download_file(filepath: Path, url: str, file_size=0, file_mtime=None): #TODO refactor function with ClipFile and change file time
+def download_file(filepath: Path, url: str, file_size=0, file_mtime=None):
     """
     Download a file from a given URL to a specified filepath.
 
@@ -49,7 +49,6 @@ def download_file(filepath: Path, url: str, file_size=0, file_mtime=None): #TODO
     except Exception as ex:
        log.error(f'Falhou o download de \'{url}\': {str(ex)}')
        pass
-    #print(soup.find("td", class_="barra_de_escolhas"})) # get left sidebar TODO parse number of downloads
 
 def get_file(file: ClipFile, path: Path) -> (Path, str, int, datetime):
     """

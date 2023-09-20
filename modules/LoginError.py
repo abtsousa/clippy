@@ -1,7 +1,5 @@
 import logging as log
-
-#Config
-import clippy.config as cfg
+from handlers.creds_handler import reset_login
 
 class LoginError(Exception):
     """
@@ -11,5 +9,5 @@ class LoginError(Exception):
         message (str): A custom error message (optional).
     """
     def __init__(self, message="Erro de login"):
-        cfg.update_credentials(None,None) # reset wrong credentials
+        reset_login()
         log.error(message)

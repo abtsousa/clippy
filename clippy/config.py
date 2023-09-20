@@ -2,14 +2,11 @@ from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 from requests import Session
 import logging as log
-import configparser
 from pathlib import Path
 from InquirerPy import inquirer
 from appdirs import user_data_dir
 
-# TODO dynamically store and load a config file like:
-#cfg = {s:dict(config.items(s)) for s in config.sections()}
-
+'''
 def load_config():
     """Load a basic user config."""
     if Path.is_file(cfgpath):
@@ -57,6 +54,7 @@ def update_credentials(new_user, new_password):
     global username, password
     username = new_user
     password = new_password
+'''
 
 # Multithreading
 MAX_THREADS = 8
@@ -83,7 +81,8 @@ def show_disclaimer():
     discpath = cfgpath.parent / "disclaimer_shown"
     if not Path.is_file(discpath):
         print(disclaimer)
-        Path.touch(discpath)
+        Path.mkdir(discpath.parent, exist_ok=True)
+        Path.touch(discpath, exist_ok=True)
 
 # Disclaimer
 disclaimer = '''
@@ -101,5 +100,5 @@ domain='https://clip.fct.unl.pt'
 cfgpath = Path(user_data_dir("clippy")) / "config.ini"
 
 session_mount()
-username, password = load_config()
+
 log.info("Config.py carregado.")
