@@ -31,7 +31,7 @@ def show_disclaimer():
     discpath = cfgpath.parent / "disclaimer_shown"
     if not Path.is_file(discpath):
         print(disclaimer)
-        Path.mkdir(discpath.parent, exist_ok=True)
+        Path.mkdir(discpath.parent, parents=True, exist_ok=True)
         Path.touch(discpath, exist_ok=True)
 
 # Disclaimer
