@@ -8,6 +8,38 @@ import clippy.config as cfg
 service_name="clippy"
 reset_flag=False
 
+# macOS workaround
+def load_username_alt():
+    """Load a basic user config."""
+    if Path.is_file(cfg.cfgpath):
+        log.info(f"Ficheiro de configuração encontrado: {cfg.cfgpath}")
+        try:
+            config = configparser.ConfigParser()
+            config.read(cfg.cfgpath)
+            try: username = config.get("Credenciais","username")
+            except configparser.NoOptionError: username = None
+            #try: password = config.get("Credenciais","password")
+            #except configparser.NoOptionError: password = None
+            return username
+        except (configparser.MissingSectionHeaderError, configparser.NoSectionError):
+            return None
+    else:
+        log.info("Nenhum ficheiro de configuração encontrado.")
+        return None
+
+# macOS workaround
+def save_username_alt(username):
+    """Save a basic user config."""
+    config = configparser.ConfigParser()
+    
+    config['Credenciais'] = {"username": username}
+    Path.mkdir(cfg.cfgpath.parent, parents=True, exist_ok=True)
+    with open(cfg.cfgpath, 'w+') as configfile:
+        config.write(configfile)
+        print(f"Ficheiro de configuração guardado em: '{cfg.cfgpath}'")
+def delete_password(username):
+    keyring.delete_password(service_name, username)
+
 def load_username():
     if reset_flag:
         return None
@@ -37,42 +69,11 @@ def save_credentials(username, password):
         transformer=lambda result: "Sim" if result else "Não",
     ).execute():
         keyring.set_password(service_name, username, password)
+        print("Credenciais guardadas no sistema.")
 
         # Check if username is unaccessible and:
         if keyring.get_credential(service_name, None) is None:
             save_username_alt(username)
-
-# macOS workaround
-def load_username_alt():
-    """Load a basic user config."""
-    if Path.is_file(cfg.cfgpath):
-        log.info(f"Ficheiro de configuração encontrado: {cfg.cfgpath}")
-        try:
-            config = configparser.ConfigParser()
-            config.read(cfg.cfgpath)
-            try: username = config.get("Credenciais","username")
-            except configparser.NoOptionError: username = None
-            #try: password = config.get("Credenciais","password")
-            #except configparser.NoOptionError: password = None
-            return username
-        except configparser.MissingSectionHeaderError:
-            return None
-    else:
-        log.info("Nenhum ficheiro de configuração encontrado.")
-        return None
-
-# macOS workaround
-def save_username_alt(username):
-    """Save a basic user config."""
-    config = configparser.ConfigParser()
-    
-    config['Credenciais'] = {"username": username}
-    Path.mkdir(cfg.cfgpath.parent, parents=True, exist_ok=True)
-    with open(cfg.cfgpath, 'w+') as configfile:
-        config.write(configfile)
-        print(f"Ficheiro de configuração guardado em: '{cfg.cfgpath}'")
-def delete_password(username):
-    keyring.delete_password(service_name, username)
 
 def reset_login():
     '''Ignores saved credentials if they are wrong.'''
