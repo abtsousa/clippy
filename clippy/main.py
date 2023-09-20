@@ -20,11 +20,13 @@ from modules.CourseList import CourseList
 from modules.Course import Course
 
 # Local functions
-from handlers.get_login import get_login
+from handlers.check_updates import get_latest_release
+from handlers.get_login import get_login, check_for_save_credentials
 from handlers.HTML_parser import parse_courses, parse_docs, parse_index, parse_years
 from handlers.file_handler import get_file, download_file, count_files_in_subfolders
 from handlers.cache_handler import commit_cache, parse_cache, stash_cache
 from handlers.print_handler import print_progress, human_readable_size
+from handlers.creds_handler import load_username, load_password, delete_password
 
 """
 NOVA Clippy
@@ -57,7 +59,7 @@ with a similar structure, keeping it in sync with the server.
 __author__ = "Afonso Bras Sousa (LEI-65263)"
 __maintainer__ = "Afonso Bras Sousa"
 __email__ = "ab.sousa@campus.fct.unl.pt"
-__version__ = "0.9.5"
+__version__ = "0.9.7"
 
 app = typer.Typer(add_completion=False)
 
@@ -112,6 +114,19 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
 
     # Disclaimer
     cfg.show_disclaimer()
+
+    # Check for update
+    latest_version = get_latest_release()
+    log.debug(f"Latest version: {latest_version}")
+    log.debug(f"Current version: {__version__}")
+    if latest_version != __version__:
+        update_text = f"[bold underline red]!!!Actualização disponível!!![/bold underline red] ({__version__} → {latest_version})\nTransfere a versão mais recente em: https://github.com/abtsousa/clippy/releases/latest"
+        print("*" * 45)
+        print(update_text)
+        print("*" * 45)
+        print()
+    else:
+        log.info("Estás a usar a versão mais recente da aplicação.")
     
     if path is None: print(f"A iniciar o Clippy na directoria {Path.cwd()}...")
     # Check valid path
@@ -121,15 +136,17 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
     valid_login = False
     while not valid_login:
         try:
-            if username is None and not force_relogin:
-                user = get_login(cfg.username, cfg.password)
+            if force_relogin:
+                userID = get_login(username)
+            elif username is None:
+                userID = get_login(load_username(), load_password())
             else:
-                user = get_login(username)
+                userID = get_login(username, load_password(username))
             valid_login = True
         except LoginError:
             continue
     
-    years = parse_years(user)
+    years = parse_years(userID)
     if len(years)<1:
         log.error("Não foram encontrados anos lectivos nos quais o utilizador está inscrito.")
         exit()
@@ -152,7 +169,7 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
 
     # 1) Scrape units list
     print_progress(1,"A procurar unidades curriculares inscritas...")
-    courses = parse_courses(year,user)
+    courses = parse_courses(year,userID)
     log.info("Encontradas as seguintes unidades: "+" | ".join(course.name for course in courses) )
 
     # 2) (Multithreaded) Load each unit's index and compare it to cached file if it exists
@@ -190,11 +207,11 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
     else:
         print("Não foram encontrados ficheiros novos.")
     
-    cfg.save_config()
+    check_for_save_credentials()
 
     if getattr(sys, 'frozen', False):
         log.debug("A correr a partir de EXE!")
-        input("Pressiona ENTER para terminar o programa.") #TODO pyinstaller only
+        input("Pressiona ENTER para terminar o programa.")
     else:
         log.debug("A correr a partir de script, a terminar o programa automaticamente...")
 
@@ -232,8 +249,6 @@ def check_path(path: Path):
         else:
             path = query_path(path)
             check_path(path)
-        #TODO check for config file in directory?
-        #TODO default directory input instead of cwd?
     elif not path.is_dir():
         print("O caminho desejado não é uma directoria válida.")
         path = query_path(path)
