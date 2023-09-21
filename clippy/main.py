@@ -189,6 +189,8 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
         print_progress(4, "A transferir ficheiros em falta...")
         _ = threadpool_execute(download_file, files, max_workers=4)
         print_progress(4,"Todos os ficheiros foram transferidos.")
+        download_time = (time.time_ns() - download_timestart) / 10**9
+
     else:
         print_progress(4, "Não há ficheiros a transferir.")
 
@@ -199,7 +201,6 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
     # 6) Exit with success
     print_progress(6, "Concluído :)")
     if len(files) != 0:
-        download_time = (time.time_ns() - download_timestart) / 10**9
         download_size = (sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())) - download_sizestart
         unique_folders = sorted({str(file[0].parent) for file in files})
         print(f"Transferidos {len(files)} ficheiros ({human_readable_size(download_size)} em [dim cyan bold]{download_time}[/dim cyan bold]s = {human_readable_size(download_size/download_time)}/s) para as pastas:",flush=True)
