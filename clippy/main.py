@@ -68,14 +68,32 @@ def version_callback(value: bool):
         print(f"Clippy version {__version__}")
         raise typer.Exit()
 
+"""
+@app.command()
+def course(
+        ID: Annotated[int, typer.Argument(help="O ID da cadeira a transferir.", show_default=False)],
+        year: Annotated[int, typer.Argument(help="O ano lectivo a transferir.", show_default=False)],
+        semester: Annotated[int, typer.Argument(help="O semestre a transferir.", show_default=False)],
+        is_trimester: Annotated[int, typer.Option(help="Se a cadeira é trimestral", show_default=True)] = False,
+        path: Annotated[Optional[Path], typer.Argument(help="A pasta onde os ficheiros do CLIP serão guardados. (opcional)", show_default=False)] = None,
+        name: Annotated[str, typer.Option(help="O nome da cadeira.", show_default=False)] = None,
+        username: Annotated[str, typer.Option(help="O nome de utilizador no CLIP.", show_default=False)] = None,
+        force_relogin: Annotated[bool, typer.Option(help="Ignora as credenciais guardadas em sistema.")] = False,
+        debug: Annotated[bool, typer.Option(help="Cria um ficheiro log.log para efeitos de debug.", hidden = True)] = False,
+    ):
+    """Transfere uma cadeira em específico."""
+
+    userID = start_routine(debug, path, force_relogin, username)
+"""
+    
 @app.command()
 def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLIP.", show_default=False)] = None,
         path: Annotated[Optional[Path], typer.Argument(help="A pasta onde os ficheiros do CLIP serão guardados. (opcional)", show_default=False)] = None,
         force_relogin: Annotated[bool, typer.Option(help="Ignora as credenciais guardadas em sistema.")] = False,
         auto: Annotated[bool, typer.Option(help="Escolhe automaticamente o ano lectivo mais recente.")] = True,
+        year: Annotated[int, typer.Option(help="Define o ano lectivo a transferir.", show_default=False)] = 0,
         debug: Annotated[bool, typer.Option(help="Cria um ficheiro log.log para efeitos de debug.", hidden = True)] = False,
-        version: Annotated[Optional[bool], typer.Option("--version", callback=version_callback, is_eager=True),
-    ] = None,
+        version: Annotated[Optional[bool], typer.Option("--version", callback=version_callback, is_eager=True)] = None,
     ):
     """\bO Clippy é um simples web scrapper e gestor de downloads para a plataforma interna de e-learning da FCT-NOVA, o CLIP.
     O programa navega o CLIP à procura de ficheiros nas páginas das cadeiras de um utilizador e sincroniza-os com uma pasta local.
@@ -89,7 +107,102 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
     \\___/      \\_______________________/
     """
 
+    userID = start_routine(debug, path, force_relogin, username)
+
+    years = parse_years(userID)
+    if year != 0 and year not in years.values:
+        log.error("O utilizador não tem cadeiras inscritas no ano solicitado.")
+        raise typer.Exit()
+    elif len(years)<1:
+        log.error("Não foram encontrados anos lectivos nos quais o utilizador está inscrito.")
+        raise typer.Exit()
+    elif len(years)==1:
+        year = list(years.values())[0] # get index 0
+        log.info(f"Encontrado apenas um ano lectivo ({year}).")
+    elif auto:
+        year = sorted(list(years.values()))[-1] # get index 0
+        log.info("Modo automático activo, a escolher o ano lectivo mais recente...")
+    else:
+        year = inquirer.rawlist( #TODO multiselect
+            message="Qual é o ano lectivo a transferir?",
+            choices=[
+                {"name": key, "value": value} for key, value in years.items()
+            ],
+            default=1,
+            max_height=len(years)
+        ).execute()
+    log.debug(f"Ano: {year}")
+
+    # 1) Scrape units list
+    print_progress(1,"A procurar unidades curriculares inscritas...")
+    courses = parse_courses(year,userID)
+    log.info("Encontradas as seguintes unidades: "+" | ".join(course.name for course in courses) )
+
+    # 2) (Multithreaded) Load each unit's index and compare it to cached file if it exists
+    print_progress(2, "A verificar se há ficheiros novos...")
+    subcats = threadpool_execute(search_cats_in_course, [(path, course) for course in courses])
+    log.debug(f"Lista de subcategorias a procurar: {subcats}")
+
+    # 3) (Multithreaded) Load each subcategory's table and compare it to the local folder
+    print_progress(3, "A obter URLs dos ficheiros a transferir...")
+    files = threadpool_execute(search_files_in_category, subcats)
+    log.debug(f"Lista de ficheiros a transferir: {files}")
+    
+    # 4) (Multithreaded) Download missing files
+    if len(files) != 0:
+        download_time, download_size = download_files(files, path)
+    else:
+        print_progress(4, "Não há ficheiros a transferir.")
+
+    # 5) Update cache after successful download
+    print_progress(5, "A actualizar cache...")
+    commit_cache()
+
+    # 6) Exit with success
+    print_progress(6, "Concluído :)")
+    if len(files) != 0:
+        unique_folders = sorted({str(file[0].parent) for file in files})
+        print(f"Transferidos {len(files)} ficheiros ({human_readable_size(download_size)} em [dim cyan bold]{download_time}[/dim cyan bold]s = {human_readable_size(download_size/download_time)}/s) para as pastas:",flush=True)
+        print("\n".join(f"'{folder}'" for folder in unique_folders))
+    else:
+        print("Não foram encontrados ficheiros novos.")
+    
+    check_for_save_credentials()
+
+    raise typer.Exit()
+
+def start_routine(debug, path, force_relogin, username) -> int:
+    """Sets up the program environment and logs in.
+    Returns the user's ID."""
     # Logging
+    set_log_level(debug)
+
+    # Disclaimer
+    cfg.show_disclaimer()
+
+    # Check for updates
+    check_for_updates()
+
+    if path is None: print(f"A iniciar o Clippy na directoria {Path.cwd()}...")
+    # Check valid path
+    path = check_path(path)
+
+    # 0/5 Start login
+    valid_login = False
+    while not valid_login:
+        try:
+            if force_relogin:
+                userID = get_login(username)
+            elif username is None:
+                userID = get_login(load_username(), load_password())
+            else:
+                userID = get_login(username, load_password(username))
+            valid_login = True
+        except LoginError:
+            continue
+    return userID
+    
+def set_log_level(debug: bool = False):
     logger = log.getLogger()
     logger.handlers.clear() #clear default logger
     logger.setLevel(log.DEBUG if debug else log.WARNING)
@@ -111,111 +224,6 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
         file_logging.setLevel(log.DEBUG)
         file_logging.setFormatter(formatter)
         logger.addHandler(file_logging)
-
-    # Disclaimer
-    cfg.show_disclaimer()
-
-    # Check for update
-    latest_version = get_latest_release()
-    log.debug(f"Latest version: {latest_version}")
-    log.debug(f"Current version: {__version__}")
-    if latest_version != __version__:
-        update_text = f"[bold underline red]!!!Actualização disponível!!![/bold underline red] ({__version__} → {latest_version})\nTransfere a versão mais recente em: https://github.com/abtsousa/clippy/releases/latest"
-        print("*" * 45)
-        print(update_text)
-        print("*" * 45)
-        print()
-    else:
-        log.info("Estás a usar a versão mais recente da aplicação.")
-    
-    if path is None: print(f"A iniciar o Clippy na directoria {Path.cwd()}...")
-    # Check valid path
-    path = check_path(path)
-
-    # 0/5 Start login
-    valid_login = False
-    while not valid_login:
-        try:
-            if force_relogin:
-                userID = get_login(username)
-            elif username is None:
-                userID = get_login(load_username(), load_password())
-            else:
-                userID = get_login(username, load_password(username))
-            valid_login = True
-        except LoginError:
-            continue
-    
-    years = parse_years(userID)
-    if len(years)<1:
-        log.error("Não foram encontrados anos lectivos nos quais o utilizador está inscrito.")
-        exit()
-    elif len(years)==1:
-        year = list(years.values())[0] # get index 0
-        log.info(f"Encontrado apenas um ano lectivo ({year}).")
-    elif auto:
-        year = sorted(list(years.values()))[-1] # get index 0
-        log.info("Modo automático activo, a escolher o ano lectivo mais recente...")
-    else:
-        year = inquirer.rawlist( #TODO multiselect
-            message="Qual é o ano lectivo a transferir?",
-            choices=[
-                {"name": key, "value": value} for key, value in years.items()
-            ],
-            default=1,
-            max_height=len(years)
-        ).execute()
-    log.debug(year)
-
-    # 1) Scrape units list
-    print_progress(1,"A procurar unidades curriculares inscritas...")
-    courses = parse_courses(year,userID)
-    log.info("Encontradas as seguintes unidades: "+" | ".join(course.name for course in courses) )
-
-    # 2) (Multithreaded) Load each unit's index and compare it to cached file if it exists
-    print_progress(2, "A verificar se há ficheiros novos...")
-    subcats = threadpool_execute(search_cats_in_course, [(path, course) for course in courses])
-    log.debug(f"Lista de subcategorias a procurar: {subcats}")
-
-    # 3) (Multithreaded) Load each subcategory's table and compare it to the local folder
-    print_progress(3, "A obter URLs dos ficheiros a transferir...")
-    files = threadpool_execute(search_files_in_category, subcats)
-    log.debug(f"Lista de ficheiros a transferir: {files}")
-    
-    # 4) (Multithreaded) Download missing files
-    if len(files) != 0:
-        download_timestart = time.time_ns()
-        download_sizestart = sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())
-        print_progress(4, "A transferir ficheiros em falta...")
-        _ = threadpool_execute(download_file, files, max_workers=4)
-        print_progress(4,"Todos os ficheiros foram transferidos.")
-        download_time = (time.time_ns() - download_timestart) / 10**9
-
-    else:
-        print_progress(4, "Não há ficheiros a transferir.")
-
-    # 5) Update cache after successful download
-    print_progress(5, "A actualizar cache...")
-    commit_cache()
-
-    # 6) Exit with success
-    print_progress(6, "Concluído :)")
-    if len(files) != 0:
-        download_size = (sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())) - download_sizestart
-        unique_folders = sorted({str(file[0].parent) for file in files})
-        print(f"Transferidos {len(files)} ficheiros ({human_readable_size(download_size)} em [dim cyan bold]{download_time}[/dim cyan bold]s = {human_readable_size(download_size/download_time)}/s) para as pastas:",flush=True)
-        print("\n".join(f"'{folder}'" for folder in unique_folders))
-    else:
-        print("Não foram encontrados ficheiros novos.")
-    
-    check_for_save_credentials()
-
-    if getattr(sys, 'frozen', False):
-        log.debug("A correr a partir de EXE!")
-        input("Pressiona ENTER para terminar o programa.")
-    else:
-        log.debug("A correr a partir de script, a terminar o programa automaticamente...")
-
 
 def threadpool_execute(worker_function, items, max_workers=cfg.MAX_THREADS):
     results = []
@@ -349,8 +357,50 @@ def search_files_in_category(category: str, catID: str, course: Course, full_pat
         log.error(f'Erro a procurar {category} de {course}: {str(ex)}')
         pass
 
+def download_files(files, path) -> (int,int):
+    """Download requested files to the specified path.
+    
+    Parameters:
+    files: The array of files to download.
+    path (Path): The path to save the files.
+    
+    Returns (download_time, download_size)
+        download_time: How much time the download took.
+        download_size: The total size of the downloaded files.
+    """
+    download_timestart = time.time_ns()
+    download_sizestart = sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())
+    print_progress(4, "A transferir ficheiros em falta...")
+    _ = threadpool_execute(download_file, files, max_workers=4)
+    print_progress(4,"Todos os ficheiros foram transferidos.")
+    download_time = (time.time_ns() - download_timestart) / 10**9
+    download_size = (sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())) - download_sizestart
+    return (download_time, download_size)
+
+def check_for_updates():
+    '''Checks Github for updates.'''
+    latest_version = get_latest_release()
+    log.debug(f"Latest version: {latest_version}")
+    log.debug(f"Current version: {__version__}")
+    if latest_version != __version__:
+        update_text = f"[bold underline red]!!!Actualização disponível!!![/bold underline red] ({__version__} → {latest_version})\nTransfere a versão mais recente em: https://github.com/abtsousa/clippy/releases/latest"
+        print("*" * 45)
+        print(update_text)
+        print("*" * 45)
+        print()
+    else:
+        log.info("Estás a usar a versão mais recente da aplicação.")
+
+
 if __name__ == "__main__":
     try:
         app()
+    except typer.Exit():
+        if getattr(sys, 'frozen', False):
+            log.debug("A correr a partir de EXE!")
+            input("Pressiona ENTER para terminar o programa.")
+        else:
+            log.debug("A correr a partir de script, a terminar o programa automaticamente...")
+            raise typer.Exit()
     except Exception:
         log.exception("Ocorreu um erro.\n")

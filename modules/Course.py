@@ -14,8 +14,8 @@ class Course:
 
     Attributes:
         name (str): The name of the course.
-        year (str): The academic year associated with the course.
-        ID (str): The identifier for the course.
+        year (int): The academic year associated with the course.
+        ID (int): The identifier for the course.
         semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
         semester (str): The semester number.
 
@@ -32,8 +32,8 @@ class Course:
             link (str): The link to the course's details page.
         """
         self.name = name
-        self.year = re.search(r"ano_lectivo=(\d+)", link).group(1)
-        self.ID = re.search(r"unidade=(\d+)", link).group(1)
+        self.year = int(re.search(r"ano_lectivo=(\d+)", link).group(1))
+        self.ID = int(re.search(r"unidade=(\d+)", link).group(1))
         self.semester_type = re.search(r"tipo_de_per%EDodo_lectivo=(\w)", link).group(1)
         self.semester = re.search(r"per%EDodo_lectivo=(\d)", link).group(1)
     
