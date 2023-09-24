@@ -68,6 +68,12 @@ def version_callback(value: bool):
         print(f"Clippy version {__version__}")
         raise typer.Exit()
 
+#TODO DEBUG invalid ID
+#TODO DEBUG invalid year
+#TODO DEBUG invalid semester
+#TODO DEBUG invalid semester_type
+#TODO parse course name
+
 @app.command()
 def single(
         id: Annotated[int, typer.Argument(help="O ID da cadeira a transferir.", show_default=False)],
@@ -83,6 +89,10 @@ def single(
     """Transfere uma cadeira em específico."""
 
     start_routine(debug)
+
+    log.debug(id)
+    log.debug(year)
+    log.debug(semester)
 
     if name == "":
         name = str(id)
@@ -336,13 +346,13 @@ def search_cats_in_course(path: Path, course: Course) -> [(str, str, Course, Pat
     print(f"A procurar documentos de {course.name}...")
     path = path / str(course.year)
 
-    index = parse_index(course.year, course.semester_type, course.semester, course.ID)
+    index = parse_index(course.year, course.semester_type, course.semester, course.id)
 
     if not index: #skips creating directory if there are no documents
         log.info(f"Não foram encontrados documentos em {course.name}.")
     else:
         log.debug(f"Contagem para {course.name}: {index}")
-        full_semester = course.semester+course.semester_type.upper()
+        full_semester = str(course.semester)+course.semester_type.upper()
         full_path = path / full_semester / course.name
 
         full_path.mkdir(parents=True, exist_ok=True) # Create folder if it does not exist
@@ -396,7 +406,7 @@ def search_files_in_category(category: str, catID: str, course: Course, full_pat
     """
     try:
         print(f"A procurar {category} de {course.name}...")
-        table = parse_docs(course.year,course.semester_type, course.semester, course.ID, catID)
+        table = parse_docs(course.year,course.semester_type, course.semester, course.id, catID)
 
         _files = []
         for file in table:
