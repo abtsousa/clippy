@@ -26,7 +26,7 @@ from handlers.HTML_parser import parse_courses, parse_docs, parse_index, parse_y
 from handlers.file_handler import get_file, download_file, count_files_in_subfolders
 from handlers.cache_handler import commit_cache, parse_cache, stash_cache
 from handlers.print_handler import print_progress, human_readable_size
-from handlers.creds_handler import load_username, load_password, delete_password
+from handlers.creds_handler import load_username, load_password
 
 """
 NOVA Clippy
@@ -68,32 +68,80 @@ def version_callback(value: bool):
         print(f"Clippy version {__version__}")
         raise typer.Exit()
 
-"""
 @app.command()
-def course(
-        ID: Annotated[int, typer.Argument(help="O ID da cadeira a transferir.", show_default=False)],
+def single(
+        id: Annotated[int, typer.Argument(help="O ID da cadeira a transferir.", show_default=False)],
         year: Annotated[int, typer.Argument(help="O ano lectivo a transferir.", show_default=False)],
         semester: Annotated[int, typer.Argument(help="O semestre a transferir.", show_default=False)],
-        is_trimester: Annotated[int, typer.Option(help="Se a cadeira é trimestral", show_default=True)] = False,
         path: Annotated[Optional[Path], typer.Argument(help="A pasta onde os ficheiros do CLIP serão guardados. (opcional)", show_default=False)] = None,
-        name: Annotated[str, typer.Option(help="O nome da cadeira.", show_default=False)] = None,
-        username: Annotated[str, typer.Option(help="O nome de utilizador no CLIP.", show_default=False)] = None,
-        force_relogin: Annotated[bool, typer.Option(help="Ignora as credenciais guardadas em sistema.")] = False,
-        debug: Annotated[bool, typer.Option(help="Cria um ficheiro log.log para efeitos de debug.", hidden = True)] = False,
+        is_trimester: Annotated[bool, typer.Option("--is-trimester/--is-semester", "-t/-s", help="Se a cadeira é trimestral ou semestral", show_default=True)] = False,
+        name: Annotated[str, typer.Option("-n","--name",help="O nome da cadeira.", show_default=False)] = "",
+        username: Annotated[str, typer.Option("-u","--username",help="O nome de utilizador no CLIP.", show_default=False)] = None,
+        relogin: Annotated[bool, typer.Option("--relogin", help="Ignora as credenciais guardadas em sistema.")] = False,
+        debug: Annotated[bool, typer.Option("-d","--debug",help="Cria um ficheiro log.log para efeitos de debug.", hidden = True)] = False,
     ):
     """Transfere uma cadeira em específico."""
 
-    userID = start_routine(debug, path, force_relogin, username)
-"""
+    start_routine(debug)
+
+    if name == "":
+        name = str(id)
+
+    # Check valid path
+    if path is None:
+        path = Path.cwd()
+        if path.name != name: path = path / name
+    print(f"A iniciar o Clippy na directoria {path}...")
+    path = check_path(path)
+
+    #0) Start login
+    userID = start_login(username, relogin)
+
+    semester_type = "t" if is_trimester else "s"
+    course = Course(name, id, year, semester, semester_type)
+
+    # 2) Load the unit's index and compare it to cached file if it exists
+    print_progress(2, "A verificar se há ficheiros novos...")
+    subcats = search_cats_in_course(path, course)
+    log.debug(f"Lista de subcategorias a procurar: {subcats}")
+
+    # 3) (Multithreaded) Load each subcategory's table and compare it to the local folder
+    print_progress(3, "A obter URLs dos ficheiros a transferir...")
+    files = threadpool_execute(search_files_in_category, subcats)
+    log.debug(f"Lista de ficheiros a transferir: {files}")
     
-@app.command()
-def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLIP.", show_default=False)] = None,
-        path: Annotated[Optional[Path], typer.Argument(help="A pasta onde os ficheiros do CLIP serão guardados. (opcional)", show_default=False)] = None,
-        force_relogin: Annotated[bool, typer.Option(help="Ignora as credenciais guardadas em sistema.")] = False,
+    # 4) (Multithreaded) Download missing files
+    if len(files) != 0:
+        download_time, download_size = download_files(files, path)
+    else:
+        print_progress(4, "Não há ficheiros a transferir.")
+
+    # 5) Update cache after successful download
+    print_progress(5, "A actualizar cache...")
+    commit_cache()
+
+    # 6) Exit with success
+    print_progress(6, "Concluído :)")
+    if len(files) != 0:
+        unique_folders = sorted({str(file[0].parent) for file in files})
+        print(f"Transferidos {len(files)} ficheiros ({human_readable_size(download_size)} em [dim cyan bold]{download_time}[/dim cyan bold]s = {human_readable_size(download_size/download_time)}/s) para as pastas:",flush=True)
+        print("\n".join(f"'{folder}'" for folder in unique_folders))
+    else:
+        print("Não foram encontrados ficheiros novos.")
+    
+    check_for_save_credentials()
+
+    raise typer.Exit()
+
+@app.callback(invoke_without_command=True)
+def batch(ctx: typer.Context,
+        username: Annotated[str, typer.Option("-u", "--username",help="O nome de utilizador no CLIP.", show_default=False)] = None,
+        path: Annotated[Path, typer.Option("-p", "--path", help="A pasta onde os ficheiros do CLIP serão guardados.", show_default=False)] = None,
+        year: Annotated[int, typer.Option("-y","--year",help="Define o ano lectivo a transferir.", show_default=False)] = 0,
         auto: Annotated[bool, typer.Option(help="Escolhe automaticamente o ano lectivo mais recente.")] = True,
-        year: Annotated[int, typer.Option(help="Define o ano lectivo a transferir.", show_default=False)] = 0,
-        debug: Annotated[bool, typer.Option(help="Cria um ficheiro log.log para efeitos de debug.", hidden = True)] = False,
-        version: Annotated[Optional[bool], typer.Option("--version", callback=version_callback, is_eager=True)] = None,
+        relogin: Annotated[bool, typer.Option("--relogin", help="Ignora as credenciais guardadas em sistema.")] = False,
+        debug: Annotated[bool, typer.Option("-d","--debug",help="Cria um ficheiro log.log para efeitos de debug.", hidden = True)] = False,
+        version: Annotated[Optional[bool], typer.Option("-v", "--version", help=__version__, callback=version_callback, is_eager=True)] = None,
     ):
     """\bO Clippy é um simples web scrapper e gestor de downloads para a plataforma interna de e-learning da FCT-NOVA, o CLIP.
     O programa navega o CLIP à procura de ficheiros nas páginas das cadeiras de um utilizador e sincroniza-os com uma pasta local.
@@ -106,8 +154,23 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
     |\\_/|      | Posso ajudar-te?      |
     \\___/      \\_______________________/
     """
+    """Sincroniza os ficheiros de todas as cadeiras de um ano lectivo. (default)"""
 
-    userID = start_routine(debug, path, force_relogin, username)
+    if ctx.invoked_subcommand is not None:
+        # Execute subcommand
+        return
+    
+    start_routine(debug)
+
+    # Check valid path
+    if path is None:
+        path = Path.cwd()
+        if path.name != "CLIP": path = path / "CLIP"
+    print(f"A iniciar o Clippy na directoria {path}...")
+    path = check_path(path)
+
+    #0) Start login and look for academic years
+    userID = start_login(username, relogin)
 
     years = parse_years(userID)
     if year != 0 and year not in years.values:
@@ -171,7 +234,7 @@ def main(username: Annotated[str, typer.Option(help="O nome de utilizador no CLI
 
     raise typer.Exit()
 
-def start_routine(debug, path, force_relogin, username) -> int:
+def start_routine(debug) -> int:
     """Sets up the program environment and logs in.
     Returns the user's ID."""
     # Logging
@@ -183,11 +246,7 @@ def start_routine(debug, path, force_relogin, username) -> int:
     # Check for updates
     check_for_updates()
 
-    if path is None: print(f"A iniciar o Clippy na directoria {Path.cwd()}...")
-    # Check valid path
-    path = check_path(path)
-
-    # 0/5 Start login
+def start_login(username: str, force_relogin: bool = False):
     valid_login = False
     while not valid_login:
         try:
@@ -242,9 +301,6 @@ def threadpool_execute(worker_function, items, max_workers=cfg.MAX_THREADS):
     return results
 
 def check_path(path: Path):
-    if path is None:
-        path = Path.cwd()
-        if path.name != "CLIP": path = path / "CLIP"
     if not path.exists():
         if inquirer.confirm(
             message=f"A directoria {path} não existe. Criá-la?",
@@ -278,7 +334,7 @@ def dict_compare(dict_a: dict, dict_b: dict):
 
 def search_cats_in_course(path: Path, course: Course) -> [(str, str, Course, Path)]:
     print(f"A procurar documentos de {course.name}...")
-    path = path / course.year
+    path = path / str(course.year)
 
     index = parse_index(course.year, course.semester_type, course.semester, course.ID)
 
@@ -394,6 +450,9 @@ def check_for_updates():
 
 if __name__ == "__main__":
     try:
+        commands = {'batch', 'single'}
+        print(sys.argv)
+        sys.argv.insert(1, 'batch') if sys.argv[1] not in commands else None
         app()
     except typer.Exit():
         if getattr(sys, 'frozen', False):

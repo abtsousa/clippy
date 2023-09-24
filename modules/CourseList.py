@@ -28,7 +28,7 @@ class CourseList(list):
         """
         super().__init__()
         links = self.get_links(html)
-        courses = [Course(link.text, link['href']) for link in links]
+        courses = [Course.from_link(link.text, link['href']) for link in links]
         self.extend(courses)
     
     def __str__(self):
