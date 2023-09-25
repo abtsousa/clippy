@@ -93,7 +93,7 @@ def single(
     # Check valid path
     if path is None:
         path = Path.cwd()
-        if path.name != name: path = path / name
+        if path.name != "CLIP": path = path / "CLIP"
     print(f"A iniciar o Clippy na directoria {path}...")
     path = check_path(path)
 
@@ -106,6 +106,12 @@ def single(
     # 2) Load the unit's index and compare it to cached file if it exists
     print_progress(2, "A verificar se há ficheiros novos...")
     subcats = search_cats_in_course(path, course)
+
+    # Rename destination path to unit's name
+    if name != course.name:
+        print(f"Encontrada cadeira {name}: {course.name}")
+        name = course.name
+
     log.debug(f"Lista de subcategorias a procurar: {subcats}")
 
     # 3) (Multithreaded) Load each subcategory's table and compare it to the local folder
@@ -339,7 +345,7 @@ def search_cats_in_course(path: Path, course: Course) -> [(str, str, Course, Pat
     print(f"A procurar documentos de {course.name}...")
     path = path / str(course.year)
 
-    index = parse_index(course.year, course.semester_type, course.semester, course.id)
+    index, course.name = parse_index(course.year, course.semester_type, course.semester, course.id)
 
     if not index: #skips creating directory if there are no documents
         log.info(f"Não foram encontrados documentos em {course.name}.")
@@ -434,7 +440,7 @@ def download_files(files, path) -> (int,int):
     print_progress(4,"Todos os ficheiros foram transferidos.")
     download_time = (time.time_ns() - download_timestart) / 10**9
     download_size = (sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())) - download_sizestart
-    return (download_time, download_size)
+    return download_time, download_size
 
 def check_for_updates():
     '''Checks Github for updates.'''

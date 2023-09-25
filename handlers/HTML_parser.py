@@ -26,6 +26,10 @@ def parse_years(user: int):
     log.debug(years)
     return years
 
+def parse_title(html: bs):
+    """Parse the title of a course from its document index."""
+    return html.find('td', {'bgcolor': '#ddddd0'}).find('span', {'class': 'h4'}).text
+
 def parse_index(year: int, semester_type: str, semester: int, course: int):
     """
     Parse the index of documents for a specific course in a semester and return it as a CatCount dictionary.
@@ -43,7 +47,7 @@ def parse_index(year: int, semester_type: str, semester: int, course: int):
     # Create url link for the class
     url = get_URL_Index(year,semester_type, semester,course)
     soup = bs(get_html(url), 'html.parser')
-    return CatCount(soup)
+    return CatCount(soup), parse_title(soup)
 
 def parse_docs(year: int, semester_type: str, semester: int, course: int, category: str):
     """
