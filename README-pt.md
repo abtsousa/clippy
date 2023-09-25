@@ -2,7 +2,7 @@
 
 <img src="clippy.png" style="width: 100px" alt="NOVA Clippy logo">
 
-#  Clippy
+# Clippy
 
 ## Um gestor de downloads para a plataforma CLIP da FCT-NOVA (BETA)
 
