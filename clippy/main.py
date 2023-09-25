@@ -59,7 +59,7 @@ with a similar structure, keeping it in sync with the server.
 __author__ = "Afonso Bras Sousa (LEI-65263)"
 __maintainer__ = "Afonso Bras Sousa"
 __email__ = "ab.sousa@campus.fct.unl.pt"
-__version__ = "0.9.7"
+__version__ = "0.9.9"
 
 app = typer.Typer(add_completion=False)
 

@@ -30,13 +30,13 @@ VSVersionInfo(
       StringTable(
         '040904E4',
         [StringStruct('CompanyName', 'Afonso Bras Sousa'),
-        StringStruct('FileDescription', 'Clippy 0.9.7'),
-        StringStruct('FileVersion', '0.9.7.0'),
+        StringStruct('FileDescription', 'Clippy 0.9.9'),
+        StringStruct('FileVersion', '0.9.9.0'),
         StringStruct('InternalName', 'clippy'),
         StringStruct('LegalCopyright', 'Copyright (c) Afonso Bras Sousa. All rights reserved.'),
         StringStruct('OriginalFilename', 'clippy.exe'),
-        StringStruct('ProductName', 'Clippy 0.9.7'),
-        StringStruct('ProductVersion', '0.9.7.0')])
+        StringStruct('ProductName', 'Clippy 0.9.9'),
+        StringStruct('ProductVersion', '0.9.9.0')])
       ]), 
     VarFileInfo([VarStruct('Translation', [1033, 1252])])
   ]
