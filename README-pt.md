@@ -49,25 +49,60 @@ O Clippy navega o site e compara os ficheiros disponíveis com uma pasta local, 
 
 ## Como usar
 
-Na consola: `clippy [OPÇÕES] [CAMINHO]`
+Na consola: `clippy [OPÇÕES] COMANDO [ARGUMENTOS]`
+Manual / ajuda: `clippy --help` | `clippy batch --help` | `clippy single --help`
 
-### Exemplos
+Existem dois modos principais (comandos): `batch` ou série (padrão) e `single` ou único
+
+### Modo Batch (padrão)
+
+Faz o download de todos os ficheiros disponíveis para todas as cadeiras do utilizador durante o ano.
+
+#### Exemplos
 
 - `clippy` Guarda os ficheiros numa subpasta CLIP no caminho actual.
-- `clippy --force-relogin C:\CLIP` Ignora as credenciais guardadas e guarda os ficheiros na pasta C:\CLIP.
-- `clippy --no-auto ~/CLIP` Deixa o utilizador escolher o ano que quer descarregar e guarda os ficheiros na pasta ~/CLIP.
+- `clippy --relogin --path C:\CLIP` Ignora as credenciais guardadas e guarda os ficheiros na pasta C:\CLIP.
+- `clippy --no-auto -p ~/CLIP` Deixa o utilizador escolher o ano que quer descarregar e guarda os ficheiros na pasta ~/CLIP.
 
-### Argumentos
+#### Opções
 
-[PATH]  A pasta onde os ficheiros do CLIP serão guardados. Se estiver em branco usa a directoria actual.
-
-### Opções
+Todas as opções são, por definição, opcionais.
 
 ```text
- --username         O nome de utilizador no CLIP.
- --force-relogin    Ignora as credenciais guardadas em sistema.
- --auto             Escolhe automaticamente o ano lectivo mais recente.
- --help             Mostra esta mensagem de ajuda.
+--username    -u  O nome de utilizador no CLIP.
+--path        -p  A pasta onde os ficheiros do CLIP serão guardados. Se estiver em branco usa a directoria actual.
+--year        -y  O ano lectivo para descarregar.
+--auto            Escolhe automaticamente o ano lectivo mais recente. (activado por padrão)
+--relogin         Ignora as credenciais de login guardadas. (desactivado por padrão)
+--version         Mostra a versão do programa.
+--help            Mostra esta mensagem e sai.
+```
+
+### (NOVO) Modo Single
+
+Faz o download de todos os ficheiros disponíveis para uma única cadeira especificada.
+
+O utilizador não precisa de estar inscrito na cadeira. Isso é especialmente útil para descarregar ficheiros de outra cadeira ou de um ano / semestre diferente do qual o utilizador está inscrito.
+
+#### Exemplo
+
+Se me inscrevi em **Análise Matemática I** (ID **11504** no CLIP) em 2023/2024, mas desejo aceder aos slides e exames do ano lectivo anterior (2022/**2023**), no **primeiro** semestre, basta escrever:
+
+`clippy single 11504 2023 1`
+
+O programa agora fará o download de todos os ficheiros para a cadeira desse semestre.
+
+#### Opções
+
+Todas as opções são, por definição, opcionais.
+
+```text
+--username    -u  O nome de utilizador no CLIP.
+--path        -p  A pasta onde os ficheiros do CLIP serão guardados. Se estiver em branco usa a directoria actual.
+--is-trimester -t A cadeira é trimestral.
+--is-semester -s  A cadeira é semestral (padrão)
+--relogin         Ignora as credenciais de login guardadas. (desactivado por padrão)
+--help            Mostra esta mensagem e sai.
 ```
 
 ## Privacidade

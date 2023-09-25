@@ -75,7 +75,6 @@ def single(
         semester: Annotated[int, typer.Argument(help="O semestre a transferir.", show_default=False)],
         path: Annotated[Path, typer.Option("-p", "--path", help="A pasta onde os ficheiros do CLIP serão guardados.", show_default=False)] = None,
         is_trimester: Annotated[bool, typer.Option("--is-trimester/--is-semester", "-t/-s", help="Se a cadeira é trimestral ou semestral", show_default=True)] = False,
-        name: Annotated[str, typer.Option("-n","--name",help="O nome da cadeira.", show_default=False)] = "",
         username: Annotated[str, typer.Option("-u","--username",help="O nome de utilizador no CLIP.", show_default=False)] = None,
         relogin: Annotated[bool, typer.Option("--relogin", help="Ignora as credenciais guardadas em sistema.")] = False,
         debug: Annotated[bool, typer.Option("-d","--debug",help="Cria um ficheiro log.log para efeitos de debug.", hidden = True)] = False,
@@ -84,8 +83,7 @@ def single(
 
     start_routine(debug)
 
-    if name == "":
-        name = str(id)
+    name = str(id)
 
     # Check valid path
     if path is None:
@@ -105,9 +103,8 @@ def single(
     subcats = search_cats_in_course(path, course)
 
     # Rename destination path to unit's name
-    if name != course.name:
-        print(f"Encontrada cadeira {name}: {course.name}")
-        name = course.name
+    print(f"Encontrada cadeira {name}: {course.name}")
+    name = course.name
 
     log.debug(f"Lista de subcategorias a procurar: {subcats}")
 

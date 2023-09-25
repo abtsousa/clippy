@@ -50,24 +50,59 @@ Please note that the program is only available in Portuguese while it's still in
 
 ## Usage
 
-Usage: `clippy [OPTIONS] [PATH]`
+Usage: `clippy [OPTIONS] COMMAND [ARGS]`
+Help pages: `clippy --help` | `clippy batch --help` | `clippy single --help`
 
-### Examples
+There are two main modes (commands): `batch` (default) and `single`
+
+### Batch mode (default)
+
+Downloads all available files for all the user's courses for the year.
+
+#### Examples
 
 - `clippy` Saves the files on a CLIP subfolder of the current path.
-- `clippy --force-relogin C:\CLIP` Ignores saved credentials and saves the files in a CLIP folder inside the C: drive.
-- `clippy --no-auto ~/CLIP` Lets the user choose which year they want to download and saves the files in a CLIP subfolder inside the home directory.
+- `clippy --relogin --path C:\CLIP` Ignores saved credentials and saves the files in a CLIP folder inside the C: drive.
+- `clippy --no-auto -p ~/CLIP` Lets the user choose which year they want to download and saves the files in a CLIP subfolder inside the home directory.
 
-### Arguments
+#### Options
 
-[PATH]  The folder where CLIP files will be stored. Will use current working directory if empty.
-
-### Options
+All options are, by definition, optional.
 
 ```text
---username        The user's username in CLIP.
---force-relogin   Ignores saved login credentials. (off by default)
+--username    -u  The user's username in CLIP.
+--path        -p  The folder where CLIP files will be stored. Will use current working directory if empty.
+--year        -y  The year to download.
 --auto            Automatically chooses the latest year available. (on by default)
+--relogin         Ignores saved login credentials. (off by default)
+--version         Show program version.
+--help            Show this message and exit.
+```
+
+### (NEW) Single mode
+
+Downloads all available files for a single, specified course.
+
+The user does not have to be enrolled to scrape the specified course. This is specially useful to download past files for a different course / year / semester that the user is not enrolled in.
+
+#### Example
+
+If I enrolled in **Análise Matemática I** (ID **11504** in CLIP) in 2023/2024 but I want to access the slides and exams for the previous school year (2022/**2023**), in the **first** semester, I just type:
+
+`clippy single 11504 2023 1`
+
+The program will now download all the files for the class for that semester.
+
+#### Options
+
+All options are, by definition, optional.
+
+```text
+--username    -u  The user's username in CLIP.
+--path        -p  The folder where CLIP files will be stored. Will use current working directory if empty.
+--is-trimester -t The course is trimestral.
+--is-semester -s  The course is semestral (default)
+--relogin         Ignores saved login credentials. (off by default)
 --help            Show this message and exit.
 ```
 
