@@ -51,6 +51,7 @@ Please note that the program is only available in Portuguese while it's still in
 ## Usage
 
 Usage: `clippy [OPTIONS] COMMAND [ARGS]`
+
 Help pages: `clippy --help` | `clippy batch --help` | `clippy single --help`
 
 There are two main modes (commands): `batch` (default) and `single`

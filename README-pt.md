@@ -50,6 +50,7 @@ O Clippy navega o site e compara os ficheiros disponíveis com uma pasta local, 
 ## Como usar
 
 Na consola: `clippy [OPÇÕES] COMANDO [ARGUMENTOS]`
+
 Manual / ajuda: `clippy --help` | `clippy batch --help` | `clippy single --help`
 
 Existem dois modos principais (comandos): `batch` ou série (padrão) e `single` ou único
