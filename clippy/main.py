@@ -68,9 +68,6 @@ def version_callback(value: bool):
         print(f"Clippy version {__version__}")
         raise typer.Exit()
 
-#TODO parse course name
-#TODO force year
-
 @app.command()
 def single(
         id: Annotated[int, typer.Argument(help="O ID da cadeira a transferir.", show_default=False)],
