@@ -6,6 +6,7 @@ from .get_html import get_html
 from modules.CatCount import CatCount
 from modules.CourseList import CourseList
 from modules.FilesList import FilesList
+from modules.EmptyHTMLException import EmptyHTMLException
 
 #Config
 import clippy.config as cfg
@@ -41,7 +42,7 @@ def parse_index(year: int, semester_type: str, semester: int, course: int):
     # Get all the links count
     # Create url link for the class
     url = get_URL_Index(year,semester_type, semester,course)
-    soup = bs(get_html(url), 'html.parser')  
+    soup = bs(get_html(url), 'html.parser')
     return CatCount(soup)
 
 def parse_docs(year: int, semester_type: str, semester: int, course: int, category: str):

@@ -68,18 +68,15 @@ def version_callback(value: bool):
         print(f"Clippy version {__version__}")
         raise typer.Exit()
 
-#TODO DEBUG invalid ID
-#TODO DEBUG invalid year
-#TODO DEBUG invalid semester
-#TODO DEBUG invalid semester_type
 #TODO parse course name
+#TODO force year
 
 @app.command()
 def single(
         id: Annotated[int, typer.Argument(help="O ID da cadeira a transferir.", show_default=False)],
         year: Annotated[int, typer.Argument(help="O ano lectivo a transferir.", show_default=False)],
         semester: Annotated[int, typer.Argument(help="O semestre a transferir.", show_default=False)],
-        path: Annotated[Optional[Path], typer.Argument(help="A pasta onde os ficheiros do CLIP serão guardados. (opcional)", show_default=False)] = None,
+        path: Annotated[Path, typer.Option("-p", "--path", help="A pasta onde os ficheiros do CLIP serão guardados.", show_default=False)] = None,
         is_trimester: Annotated[bool, typer.Option("--is-trimester/--is-semester", "-t/-s", help="Se a cadeira é trimestral ou semestral", show_default=True)] = False,
         name: Annotated[str, typer.Option("-n","--name",help="O nome da cadeira.", show_default=False)] = "",
         username: Annotated[str, typer.Option("-u","--username",help="O nome de utilizador no CLIP.", show_default=False)] = None,
@@ -89,10 +86,6 @@ def single(
     """Transfere uma cadeira em específico."""
 
     start_routine(debug)
-
-    log.debug(id)
-    log.debug(year)
-    log.debug(semester)
 
     if name == "":
         name = str(id)
@@ -144,6 +137,7 @@ def single(
     raise typer.Exit()
 
 @app.callback(invoke_without_command=True)
+@app.command(help="Sincroniza os ficheiros de todas as cadeiras de um ano lectivo. [default]")
 def batch(ctx: typer.Context,
         username: Annotated[str, typer.Option("-u", "--username",help="O nome de utilizador no CLIP.", show_default=False)] = None,
         path: Annotated[Path, typer.Option("-p", "--path", help="A pasta onde os ficheiros do CLIP serão guardados.", show_default=False)] = None,
@@ -164,7 +158,6 @@ def batch(ctx: typer.Context,
     |\\_/|      | Posso ajudar-te?      |
     \\___/      \\_______________________/
     """
-    """Sincroniza os ficheiros de todas as cadeiras de um ano lectivo. (default)"""
 
     if ctx.invoked_subcommand is not None:
         # Execute subcommand
