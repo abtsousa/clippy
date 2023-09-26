@@ -4,7 +4,7 @@
 
 # Clippy
 
-## A simple file downloader for FCT-NOVA's CLIP (BETA)
+## A simple file downloader for FCT-NOVA's <span color="DarkSlateGray">CLIP</span>, in <span color="DarkSlateGray">Py</span>thon (BETA)
 
 <img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24">
 
