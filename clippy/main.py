@@ -454,12 +454,13 @@ def check_for_updates():
 if __name__ == "__main__":
     try:
         app()
-    except typer.Exit():
-        if getattr(sys, 'frozen', False):
-            log.debug("A correr a partir de EXE!")
-            input("Pressiona ENTER para terminar o programa.")
+    except Exception as e:
+        if isinstance(e, typer.Exit):
+            if getattr(sys, 'frozen', False):
+                log.debug("A correr a partir de EXE!")
+                input("Pressiona ENTER para terminar o programa.")
+            else:
+                log.debug("A correr a partir de script, a terminar o programa automaticamente...")
+                raise typer.Exit()
         else:
-            log.debug("A correr a partir de script, a terminar o programa automaticamente...")
-            raise typer.Exit()
-    except Exception:
-        log.exception("Ocorreu um erro.\n")
+            log.exception("Ocorreu um erro.\n{e}")
