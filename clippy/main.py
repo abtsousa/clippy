@@ -27,6 +27,7 @@ from handlers.file_handler import get_file, download_file, count_files_in_subfol
 from handlers.cache_handler import commit_cache, parse_cache, stash_cache
 from handlers.print_handler import print_progress, human_readable_size
 from handlers.creds_handler import load_username, load_password
+from handlers.exit_handler import ExitHandler
 
 """
 NOVA Clippy
@@ -66,7 +67,7 @@ app = typer.Typer(add_completion=False)
 def version_callback(value: bool):
     if value:
         print(f"Clippy version {__version__}")
-        raise typer.Exit()
+        raise ExitHandler(0)
 
 @app.command()
 def single(
@@ -134,7 +135,7 @@ def single(
     
     check_for_save_credentials()
 
-    raise typer.Exit()
+    raise ExitHandler(0)
 
 @app.callback(invoke_without_command=True)
 @app.command(help="Sincroniza os ficheiros de todas as cadeiras de um ano lectivo. [default]")
@@ -178,10 +179,10 @@ def batch(ctx: typer.Context,
     years = parse_years(userID)
     if year != 0 and year not in years.values:
         log.error("O utilizador não tem cadeiras inscritas no ano solicitado.")
-        raise typer.Exit()
+        raise ExitHandler(0)
     elif len(years)<1:
         log.error("Não foram encontrados anos lectivos nos quais o utilizador está inscrito.")
-        raise typer.Exit()
+        raise ExitHandler(0)
     elif len(years)==1:
         year = list(years.values())[0] # get index 0
         log.info(f"Encontrado apenas um ano lectivo ({year}).")
@@ -235,7 +236,7 @@ def batch(ctx: typer.Context,
     
     check_for_save_credentials()
 
-    raise typer.Exit()
+    raise ExitHandler(0)
 
 def start_routine(debug) -> int:
     """Sets up the program environment and logs in.
@@ -456,11 +457,5 @@ if __name__ == "__main__":
         app()
     except Exception as e:
         if isinstance(e, typer.Exit):
-            if getattr(sys, 'frozen', False):
-                log.debug("A correr a partir de EXE!")
-                input("Pressiona ENTER para terminar o programa.")
-            else:
-                log.debug("A correr a partir de script, a terminar o programa automaticamente...")
-                raise typer.Exit()
-        else:
             log.exception("Ocorreu um erro.\n{e}")
+            raise ExitHandler(1)
