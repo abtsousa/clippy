@@ -453,9 +453,6 @@ def check_for_updates():
 
 if __name__ == "__main__":
     try:
-        commands = {'batch', 'single'}
-        print(sys.argv)
-        sys.argv.insert(1, 'batch') if sys.argv[1] not in commands else None
         app()
     except typer.Exit():
         if getattr(sys, 'frozen', False):
