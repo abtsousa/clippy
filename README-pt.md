@@ -36,7 +36,7 @@ O Clippy navega o site e compara os ficheiros disponíveis com uma pasta local, 
 
 ## Screenshots
 
-<img src="/etc/screenshots/mac2.png" width="33%" alt="mac screenshot"> <img src="/etc/screenshots/linux.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows.png" width="33%" alt="windows standalone exe"> <img src="/etc/screenshots/mac.png" width="33%" alt="mac fullscreen screenshot"> <img src="/etc/screenshots/linux2.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows4.png" width="33%" alt="windows standalone exe">
+<div style="text-align: center;"><img src="/etc/screenshots/mac2.png" width="100%" alt="mac screenshot"></div> <div style="display:inline-block"><img src="/etc/screenshots/linux.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows.png" width="33%" alt="windows standalone exe"> <img src="/etc/screenshots/mac.png" width="33%" alt="mac fullscreen screenshot"> <img src="/etc/screenshots/linux2.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows4.png" width="33%" alt="windows standalone exe"></div>
 
 ## Como instalar
 
