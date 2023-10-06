@@ -10,7 +10,7 @@
 
 by Afonso Brás Sousa
 
-[![](https://img.shields.io/github/stars/abtsousa/clippy)](https://github.com/abtsousa/clippy/stargazers) [![](https://img.shields.io/github/license/abtsousa/clippy)](https://github.com/abtsousa/clippy/blob/master/LICENSE)
+[!["stars"](https://img.shields.io/github/stars/abtsousa/clippy)](https://github.com/abtsousa/clippy/stargazers) [!["license"](https://img.shields.io/github/license/abtsousa/clippy)](https://github.com/abtsousa/clippy/blob/master/LICENSE)
 </div>
 
 ### 🇵🇹 [Portuguese version here / Clica aqui para ler a descrição em Português](README-pt.md) 🇵🇹
@@ -27,12 +27,17 @@ Clippy successfully navigates the site in order to scrape it, and compares it to
 Please note that the program is only available in Portuguese while it's still in BETA.
 
 ## Functionalities
+
 - Cross-platform (tested on MacOS, Arch Linux and Windows).
 - Extremely fast thanks to its asynchronous execution (allows checking up to 8 courses simultaneously).
 - Transfer multiple files (up to 4 files simultaneously).
 - Automatic file synchronization between CLIP and the user's folder.
 - Support for choosing the academic year you want to download.
 - Completely private, free, and open-source.
+
+## Screenshots
+
+!["mac screenshot"](etc/screenshots/mac.png) !["windows standalone exe screenshot"](etc/screenshots/windows.png) !["mac fullscreen screenshot"](etc/screenshots/mac2.png)
 
 ## Install
 

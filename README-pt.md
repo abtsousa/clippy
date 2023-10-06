@@ -26,6 +26,7 @@ Ano >> Documentos da cadeira >> Subcategoria >> Ficheiros
 O Clippy navega o site e compara os ficheiros disponíveis com uma pasta local, sincronizando-a com o servidor.
 
 ## Funcionalidades
+
 - Multiplataforma (testado em MacOS, Arch Linux e Windows)
 - Extremamente rápido graças à sua execução assíncrona (permite verificar até 8 cadeiras ao mesmo tempo).
 - Transfere múltiplos ficheiros (até 4 ficheiros em simultâneo).
@@ -33,6 +34,9 @@ O Clippy navega o site e compara os ficheiros disponíveis com uma pasta local, 
 - Suporte para escolher qual o ano lectivo que pretende descarregar.
 - Totalmente privado, gratuito e livre.
 
+## Screenshots
+
+!["mac screenshot"](etc/screenshots/mac.png) !["windows standalone exe screenshot"](etc/screenshots/windows.png) !["mac fullscreen screenshot"](etc/screenshots/mac2.png)
 ## Como instalar
 
 **NOTA:** O programa está em beta. [Deixa uma estrela](https://github.com/abtsousa/clippy/stargazers) para apoiares o projecto e seres notificado de actualizações.
