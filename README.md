@@ -114,7 +114,7 @@ All options are, by definition, optional.
 
 ## Privacy
 
-The user's credentials are transmitted only to the CLIP servers and can optionally be saved in the local computer for future use. The program does not connect to any third-party servers.
+The user's credentials are transmitted only to the CLIP servers and can optionally be saved in the local computer for future use. The program also checks the Github releases page for updates. It does not connect to any other third-party servers.
 
 The author does not obtain any information regarding the user or how the program is used, not even for telemetry purposes.
 
