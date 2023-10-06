@@ -37,7 +37,9 @@ Please note that the program is only available in Portuguese while it's still in
 
 ## Screenshots
 
-!["mac screenshot"](etc/screenshots/mac.png) !["windows standalone exe screenshot"](etc/screenshots/windows.png) !["mac fullscreen screenshot"](etc/screenshots/mac2.png)
+<img src="/etc/screenshots/mac2.png" width="33%" alt="mac screenshot">
+<img src="/etc/screenshots/windows.png" width="33%" alt="windows standalone exe">
+<img src="/etc/screenshots/mac.png" width="33%" alt="mac fullscreen screenshot">
 
 ## Install
 
