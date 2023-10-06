@@ -37,7 +37,7 @@ Please note that the program is only available in Portuguese while it's still in
 
 ## Screenshots
 
-<img src="/etc/screenshots/mac2.png" width="33%" alt="mac screenshot"> <img src="/etc/screenshots/windows.png" width="33%" alt="windows standalone exe"> <img src="/etc/screenshots/mac.png" width="33%" alt="mac fullscreen screenshot">
+<img src="/etc/screenshots/mac2.png" width="33%" alt="mac screenshot"> <img src="/etc/screenshots/linux.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows.png" width="33%" alt="windows standalone exe"> <img src="/etc/screenshots/mac.png" width="33%" alt="mac fullscreen screenshot"> <img src="/etc/screenshots/linux2.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows4.png" width="33%" alt="windows standalone exe">
 
 ## Install
 
