@@ -58,7 +58,7 @@ def load_password(username=load_username()):
     if not reset_flag:
         try:
             return keyring.get_password(service_name,username)
-        except keyring.errors.KeyringError: #keyring not found, not installed or error loading
+        except (keyring.errors.NoKeyringError, keyring.errors.KeyringError): #keyring not found, not installed or error loading
             return None
     else:
         return None
