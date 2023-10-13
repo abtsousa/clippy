@@ -7,6 +7,7 @@ import clippy.config as cfg
 
 service_name="clippy"
 reset_flag=False
+keyring_disable=False
 
 # macOS workaround
 def load_username_alt():
@@ -55,28 +56,36 @@ def load_username():
             return username
 
 def load_password(username=load_username()):
+    global keyring_disable
     if not reset_flag:
         try:
             return keyring.get_password(service_name,username)
         except (keyring.errors.NoKeyringError, keyring.errors.KeyringError): #keyring not found, not installed or error loading
+            log.info("Não foi encontrado nenhum serviço para guardar credenciais no sistema.")
+            keyring_disable = True
             return None
     else:
         return None
 
 def save_credentials(username, password):
-    if inquirer.confirm(
+    if not keyring_disable and inquirer.confirm(
         message="Guardar credenciais em sistema para a próxima vez?",
         default=True,
         confirm_letter="s",
         reject_letter="n",
         transformer=lambda result: "Sim" if result else "Não",
     ).execute():
-        keyring.set_password(service_name, username, password)
-        print("Credenciais guardadas no sistema.")
+        try:
+            keyring.set_password(service_name, username, password)
+            print("Credenciais guardadas no sistema.")
 
-        # Check if username is unaccessible and save it as a config file if so (workaround)
-        if keyring.get_credential(service_name, None) is None:
-            save_username_alt(username)
+            # Check if username is unaccessible and save it as a config file if so (workaround)
+            if keyring.get_credential(service_name, None) is None:
+                save_username_alt(username)
+
+        except (keyring.errors.NoKeyringError, keyring.errors.KeyringError): #keyring not found, not installed or error loading
+            log.info("Não foi encontrado nenhum serviço para guardar credenciais no sistema.")
+
 
 def reset_login():
     '''Ignores saved credentials if they are wrong.'''
