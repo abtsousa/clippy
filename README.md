@@ -6,7 +6,7 @@
 
 ## A simple file downloader for FCT-NOVA's <span color="#315259">CLIP</span>, in <span color="#315259">Py</span>thon (BETA)
 
-<img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24">
+<img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24"> <img src="/etc/Android-256.png" width="24">
 
 by Afonso Brás Sousa
 
