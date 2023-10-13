@@ -15,6 +15,8 @@ by Afonso Brás Sousa
 
 ### 🇵🇹 [Portuguese version here / Clica aqui para ler a descrição em Português](README-pt.md) 🇵🇹
 
+### Now with Android support! (experimental)
+
 Clippy is a simple web scraper and downloader for NOVA School of Science and Technology's internal e-learning platform, CLIP.
 
 The program scrapes a user's courses for available downloads and syncs them with a local folder.
@@ -33,6 +35,7 @@ Please note that the program is only available in Portuguese while it's still in
 - Transfer multiple files (up to 4 files simultaneously).
 - Automatic file synchronization between CLIP and the user's folder.
 - Support for choosing the academic year you want to download.
+- Support for securely saving your credentials using your OS's keyring service.
 - Completely private, free, and open-source.
 
 ## Screenshots
@@ -44,6 +47,8 @@ Please note that the program is only available in Portuguese while it's still in
 **NOTE:** This program is in beta. [Star this repository](https://github.com/abtsousa/clippy/stargazers) to support the project and be notified of updates!
 
 [Python](https://www.python.org/downloads/) ≥ v3.8 must be installed to build from source.
+
+[Termux](https://termux.dev/en/) or a similar terminal emulator needs to be installed on Android devices. (experimental)
 
 **Recommended (All platforms):** Build and install with pip:
 

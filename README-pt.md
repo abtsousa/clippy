@@ -16,6 +16,8 @@ por Afonso Brás Sousa
 
 ### 🇬🇧 [English version here / Clica aqui para ler a descrição em Inglês](README.md) 🇬🇧
 
+### Agora com suporte (experimental) para Android!
+
 O Clippy é um simples web scraper e gestor de downloads para a plataforma interna de e-learning da FCT-NOVA, o CLIP.
 
 O programa navega o CLIP à procura de ficheiros nas páginas das cadeiras de um utilizador e sincroniza-os com uma pasta local.
@@ -32,6 +34,7 @@ O Clippy navega o site e compara os ficheiros disponíveis com uma pasta local, 
 - Transfere múltiplos ficheiros (até 4 ficheiros em simultâneo).
 - Sincronização automática de ficheiros entre o CLIP e a pasta do utilizador.
 - Suporte para escolher qual o ano lectivo que pretende descarregar.
+- Suporte para guardar as suas credenciais com segurança através do serviço de porta-chaves do sistema operativo.
 - Totalmente privado, gratuito e livre.
 
 ## Screenshots
@@ -43,6 +46,8 @@ O Clippy navega o site e compara os ficheiros disponíveis com uma pasta local, 
 **NOTA:** O programa está em beta. [Deixa uma estrela](https://github.com/abtsousa/clippy/stargazers) para apoiares o projecto e seres notificado de actualizações.
 
 É necessário instalar o [Python](https://www.python.org/downloads/) ≥ v3.8 para instalar de raíz.
+
+É necessário o [Termux](https://termux.dev/en/) ou outro emulador de terminal nos dispositivos Android. (experimental)
 
 **Recomendado (Windows/Mac/Linux):** Compila e instala de raíz com o comando pip:
 
