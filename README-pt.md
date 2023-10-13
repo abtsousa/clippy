@@ -29,7 +29,7 @@ O Clippy navega o site e compara os ficheiros disponíveis com uma pasta local, 
 
 ## Funcionalidades
 
-- Multiplataforma (testado em MacOS, Arch Linux e Windows)
+- Multiplataforma (testado em MacOS, Arch Linux, Windows E Android!)
 - Extremamente rápido graças à sua execução assíncrona (permite verificar até 8 cadeiras ao mesmo tempo).
 - Transfere múltiplos ficheiros (até 4 ficheiros em simultâneo).
 - Sincronização automática de ficheiros entre o CLIP e a pasta do utilizador.
