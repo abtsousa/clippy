@@ -6,7 +6,7 @@
 
 ## Um gestor de downloads para a plataforma CLIP da FCT-NOVA (BETA)
 
-<img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24">
+<img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24"> <img src="/etc/Android-256.png" width="24">
 
 por Afonso Brás Sousa
 
@@ -15,6 +15,8 @@ por Afonso Brás Sousa
 </div>
 
 ### 🇬🇧 [English version here / Clica aqui para ler a descrição em Inglês](README.md) 🇬🇧
+
+### Agora com suporte (experimental) para Android!
 
 O Clippy é um simples web scraper e gestor de downloads para a plataforma interna de e-learning da FCT-NOVA, o CLIP.
 
@@ -26,18 +28,30 @@ Ano >> Documentos da cadeira >> Subcategoria >> Ficheiros
 O Clippy navega o site e compara os ficheiros disponíveis com uma pasta local, sincronizando-a com o servidor.
 
 ## Funcionalidades
-- Multiplataforma (testado em MacOS, Arch Linux e Windows)
+
+- Multiplataforma (testado em MacOS, Arch Linux, Windows E Android!)
 - Extremamente rápido graças à sua execução assíncrona (permite verificar até 8 cadeiras ao mesmo tempo).
 - Transfere múltiplos ficheiros (até 4 ficheiros em simultâneo).
 - Sincronização automática de ficheiros entre o CLIP e a pasta do utilizador.
 - Suporte para escolher qual o ano lectivo que pretende descarregar.
+- Suporte para guardar as suas credenciais com segurança através do serviço de porta-chaves do sistema operativo.
 - Totalmente privado, gratuito e livre.
+
+## Vê-lo em acção!
+
+https://github.com/abtsousa/clippy/assets/11749310/07c1b63b-bc40-4cf3-b3cb-ce80cd374925
+
+## Screenshots
+
+<div style="text-align: center;"><img src="/etc/screenshots/mac2.png" width="100%" alt="mac screenshot"></div> <div style="display:inline-block"><img src="/etc/screenshots/linux.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows.png" width="33%" alt="windows standalone exe screenshot"> <img src="/etc/screenshots/linux2.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/termux.png" width="33%" alt="android screenshot"> <img src="/etc/screenshots/mac.png" width="33%" alt="mac fullscreen screenshot"> <img src="/etc/screenshots/linux2.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows4.png" width="33%" alt="windows standalone exe screenshot"></div>
 
 ## Como instalar
 
 **NOTA:** O programa está em beta. [Deixa uma estrela](https://github.com/abtsousa/clippy/stargazers) para apoiares o projecto e seres notificado de actualizações.
 
 É necessário instalar o [Python](https://www.python.org/downloads/) ≥ v3.8 para instalar de raíz.
+
+É necessário o [Termux](https://termux.dev/en/) ou outro emulador de terminal nos dispositivos Android. (experimental)
 
 **Recomendado (Windows/Mac/Linux):** Compila e instala de raíz com o comando pip:
 

@@ -6,14 +6,16 @@
 
 ## A simple file downloader for FCT-NOVA's <span color="#315259">CLIP</span>, in <span color="#315259">Py</span>thon (BETA)
 
-<img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24">
+<img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24"> <img src="/etc/Android-256.png" width="24">
 
 by Afonso Brás Sousa
 
-[![](https://img.shields.io/github/stars/abtsousa/clippy)](https://github.com/abtsousa/clippy/stargazers) [![](https://img.shields.io/github/license/abtsousa/clippy)](https://github.com/abtsousa/clippy/blob/master/LICENSE)
+[!["stars"](https://img.shields.io/github/stars/abtsousa/clippy)](https://github.com/abtsousa/clippy/stargazers) [!["license"](https://img.shields.io/github/license/abtsousa/clippy)](https://github.com/abtsousa/clippy/blob/master/LICENSE)
 </div>
 
 ### 🇵🇹 [Portuguese version here / Clica aqui para ler a descrição em Português](README-pt.md) 🇵🇹
+
+### Now with Android support! (experimental)
 
 Clippy is a simple web scraper and downloader for NOVA School of Science and Technology's internal e-learning platform, CLIP.
 
@@ -27,18 +29,30 @@ Clippy successfully navigates the site in order to scrape it, and compares it to
 Please note that the program is only available in Portuguese while it's still in BETA.
 
 ## Functionalities
-- Cross-platform (tested on MacOS, Arch Linux and Windows).
+
+- Cross-platform (tested on MacOS, Arch Linux, Windows AND Android!)
 - Extremely fast thanks to its asynchronous execution (allows checking up to 8 courses simultaneously).
 - Transfer multiple files (up to 4 files simultaneously).
 - Automatic file synchronization between CLIP and the user's folder.
 - Support for choosing the academic year you want to download.
+- Support for securely saving your credentials using your OS's keyring service.
 - Completely private, free, and open-source.
+
+## See it in action!
+
+https://github.com/abtsousa/clippy/assets/11749310/07c1b63b-bc40-4cf3-b3cb-ce80cd374925
+
+## Screenshots
+
+<div style="text-align: center;"><img src="/etc/screenshots/mac2.png" width="100%" alt="mac screenshot"></div> <div style="display:inline-block"><img src="/etc/screenshots/linux.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows.png" width="33%" alt="windows standalone exe screenshot"> <img src="/etc/screenshots/linux2.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/termux.png" width="33%" alt="android screenshot"> <img src="/etc/screenshots/mac.png" width="33%" alt="mac fullscreen screenshot"> <img src="/etc/screenshots/linux2.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows4.png" width="33%" alt="windows standalone exe screenshot"></div>
 
 ## Install
 
 **NOTE:** This program is in beta. [Star this repository](https://github.com/abtsousa/clippy/stargazers) to support the project and be notified of updates!
 
 [Python](https://www.python.org/downloads/) ≥ v3.8 must be installed to build from source.
+
+[Termux](https://termux.dev/en/) or a similar terminal emulator needs to be installed on Android devices. (experimental)
 
 **Recommended (All platforms):** Build and install with pip:
 
@@ -109,7 +123,7 @@ All options are, by definition, optional.
 
 ## Privacy
 
-The user's credentials are transmitted only to the CLIP servers and can optionally be saved in the local computer for future use. The program does not connect to any third-party servers.
+The user's credentials are transmitted only to the CLIP servers and can optionally be saved in the local computer for future use. The program also checks the Github releases page for updates. It does not connect to any other third-party servers.
 
 The author does not obtain any information regarding the user or how the program is used, not even for telemetry purposes.
 
