@@ -5,7 +5,7 @@ def get_URL_YearList(user: int):
     """
     Generate the URL to the user page in CLIP.
     
-    Parametes:
+    Args:
         user (int): The user ID.
         
     Returns:
@@ -17,7 +17,7 @@ def get_URL_CourseList(year: int, user: int):
     """
     Generate the URL to the list of academic courses in CLIP.
 
-    Parameters:
+    Args:
         year (int): The academic year.
         user (int): The user ID.
 
@@ -30,7 +30,7 @@ def get_URL_Index(year: int, semester_type: str, semester: int, course: int):
     """
     Generate the URL to the index of download categories for a specific course in a semester.
 
-    Parameters:
+    Args:
         year (int): The academic year.
         semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
         semester (int): The semester number.
@@ -45,7 +45,7 @@ def get_URL_FileList(year: int, semester_type: str, semester: int, course: int, 
     """
     Generate the URL to retrieve a list of downloads for a specific course and document type in a semester.
 
-    Parameters:
+    Args:
         year (int): The academic year.
         semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
         semester (int): The semester number.

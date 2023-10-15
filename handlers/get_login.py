@@ -79,5 +79,8 @@ def get_login(username: str = None,password: str = None) -> int:
         raise LoginError(f"Erro de conexão durante o login: {e}")
     
 def check_for_save_credentials():
+    """
+    Check if the flag to update saved credentials has been set, and update them if so.
+    """
     if update_creds_flag:
         save_credentials(saved_creds[0], saved_creds[1])

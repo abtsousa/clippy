@@ -15,12 +15,7 @@ class FilesList:
     Methods:
         convert_str_to_byte(size: str) -> int:
             Convert a human-readable size string to bytes.
-        get_files_table(html: bs) -> pd.DataFrame:
-            Internal method that extracts the downloads table from the HTML content.
 
-    Usage:
-        html_content = ...
-        dtable = FilesList(html_content)
     """
 
     def __new__(cls, html: bs) -> [ClipFile]:
@@ -65,6 +60,6 @@ class FilesList:
         # divide '1 GB' into ['1', 'GB']
         num, unit = int(size[:-2]), size[-2:]
         idx = size_name.index(unit)        # index in list of sizes determines power to raise it to
-        factor = 1024 ** idx               # ** is the "exponent" operator - you can use it instead of math.pow()
+        factor = 1024 ** idx
         num += 1 # Hack to get the right size since the size in the html table actually rounds it wrong
         return num * factor

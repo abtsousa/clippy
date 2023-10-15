@@ -7,7 +7,7 @@ def get_html(url: str):
     """
     Retrieve the HTML content of a given URL.
 
-    Parameters:
+    Args:
         url (str): The URL to fetch.
 
     Returns:

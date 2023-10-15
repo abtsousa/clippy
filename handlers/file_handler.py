@@ -7,6 +7,7 @@ import os
 import requests
 
 from modules.ClipFile import ClipFile
+from handlers.print_handler import fixed_string_length
 
 #Config
 import clippy.config as cfg
@@ -15,7 +16,7 @@ def download_file(filepath: Path, url: str, file_size=0, file_mtime=None):
     """
     Download a file from a given URL to a specified filepath.
 
-    Parameters:
+    Args:
         filepath (Path): The path where the downloaded file will be saved.
         url (str): The URL of the file to download.
         file_size (int, optional): The expected size of the file in bytes. Defaults to 0.
@@ -55,7 +56,7 @@ def get_file(file: ClipFile, path: Path) -> (Path, str, int, datetime):
     Search for a local file.
     Calls download_to_file() to (re)download it if it's older or not found.
 
-    Parameters:
+    Args:
         file (ClipFile): The file to download.
         path (Path): The path where the file should be saved.
     """
@@ -75,19 +76,18 @@ def get_file(file: ClipFile, path: Path) -> (Path, str, int, datetime):
         return (path / file.name,file.link,file.size,file.mtime)
 
 def count_files_in_subfolders(path: Path) -> dict:
+    """
+    Counts the number of files in the subfolders of a given path.
+
+    Args:
+        path (Path): The path to the folder.
+    
+    Returns:
+        A dictionary with each subfolder's name (key) and their respective files count (value).
+    """
     result = {}
     for folder in path.iterdir():
         if folder.is_dir():
             file_count = sum(1 for _ in folder.glob('*') if _.is_file() and not _.name.startswith('.'))
             result[folder.name] = file_count
     return result
-
-def fixed_string_length(input_string, target_length=30):
-    if len(input_string) <= target_length:
-        padding_length = target_length - len(input_string)
-        padded_string = input_string + ' ' * padding_length
-        return padded_string
-    else:
-        truncation_length = target_length - 3  # Account for the '...' part
-        truncated_string = input_string[:truncation_length//2+1] + '...' + input_string[-(truncation_length//2):]
-        return truncated_string

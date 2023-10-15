@@ -9,7 +9,7 @@ class Course:
     Represents an academic course with associated information.
     The program automatically extracts the relevant attributes from the associated link.
 
-    Attributes:
+    Args:
         name (str): The name of the course.
         year (int): The academic year associated with the course.
         id (int): The identifier for the course.
@@ -32,7 +32,7 @@ class Course:
     @classmethod
     def from_link(cls, name: str, link: str):
         """
-        Initialize a Course instance.
+        Initialize a Course instance from its page link.
 
         Args:
             name (str): The name of the course.

@@ -392,7 +392,7 @@ def search_files_in_category(category: str, catID: str, course: Course, full_pat
     """
     Search for files in a specific category and download them if needed.
 
-    Parameters:
+    Args:
         category (str): The category of files to search for.
         catID (str): The ID of respective category.
         course (Course): The course for which to search documents.
@@ -420,7 +420,7 @@ def search_files_in_category(category: str, catID: str, course: Course, full_pat
 def download_files(files, path) -> (int,int):
     """Download requested files to the specified path.
     
-    Parameters:
+    Args:
     files: The array of files to download.
     path (Path): The path to save the files.
     

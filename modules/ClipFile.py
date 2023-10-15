@@ -9,7 +9,7 @@ class ClipFile:
     """
     Represents a file in CLIP, and its associated information.
 
-    Args / Attributes:
+    Args:
         name (str): The name of the file.
         link (str): The download link for the file.
         mtime (datetime.datetime): The modification time of the file.
@@ -18,11 +18,10 @@ class ClipFile:
 
     Methods:
         is_synced(path: Path) -> bool, None:
-            Check if the file is synchronized with a local path.
+            Check if the file is synchronized with the corresponding local folder.
 
     Usage:
-        row_data = pd.Series(...)  # Contains data for the file
-        file = ClipFile(row_data)  # Create an instance of the ClipFile class
+        file = ClipFile(name, link, mtime size, teacher)  # Create an instance of the ClipFile class
         folder = Path(...)        # Create an instance of the Path class
         
         synced = file.is_synced(folder)  # Check if clip file is synchronized with the local folder

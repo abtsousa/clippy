@@ -36,7 +36,7 @@ def parse_cache(full_path: Path, index: CatCount, coursename: str):
     """
     Loads a cached file with the CatCount data from the previous scrape.
 
-    Parameters:
+    Args:
         full_path (Path): The path to the folder where cache is stored.
         index (CatCount): The fresh scraped data.
         coursename (str): The course's name.

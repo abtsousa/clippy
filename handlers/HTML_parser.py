@@ -14,6 +14,9 @@ import clippy.config as cfg
 def parse_years(user: int):
     """
     Parse the user page to look for academic years the user was enrolled in.
+
+    Args:
+        user (int): The user's ID.
     """
 
     url = get_URL_YearList(user)
@@ -27,14 +30,19 @@ def parse_years(user: int):
     return years
 
 def parse_title(html: bs):
-    """Parse the title of a course from its document index."""
+    """
+    Parse the title of a course from its document index.
+    
+    Args:
+        html (bs): The HTML content of a course's documents page.
+    """
     return html.find('td', {'bgcolor': '#ddddd0'}).find('span', {'class': 'h4'}).text
 
 def parse_index(year: int, semester_type: str, semester: int, course: int):
     """
     Parse the index of documents for a specific course in a semester and return it as a CatCount dictionary.
 
-    Parameters:
+    Args:
         year (int): The academic year.
         semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
         semester (int): The semester number.
@@ -54,7 +62,7 @@ def parse_docs(year: int, semester_type: str, semester: int, course: int, catego
     Parse a list of documents for a specific course and document category in a semester.
     Returns an array of ClipFile objects, one for each document.
 
-    Parameters:
+    Args:
         year (int): The academic year.
         semester_type (str): Specify whether it's a semester ("s") or a trimester ("t").
         semester (int): The semester number.
@@ -72,7 +80,7 @@ def parse_courses(year: int, user: int):
     """
     Parse a list of courses for a specific year and user.
 
-    Parameters:
+    Args:
         year (int): The academic year.
         user (int): The user ID.
 

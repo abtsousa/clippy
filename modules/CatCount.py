@@ -8,10 +8,11 @@ class CatCount(dict):
     """
     Short for CategoryCount - a dictionary representing CLIP's subcategory index (key)
     with respective file count (value).
+
     This class inherits from the built-in dictionary class.
 
     Args:
-        html (bs): Beautiful Soup object containing the HTML content.
+        html (bs): Beautiful Soup object containing the HTML content of the course's subcategories.
 
     Methods:
         get_links(html: bs) -> List[bs.Tag]:
@@ -29,7 +30,7 @@ class CatCount(dict):
         Initialize an CatCount instance based on HTML content.
 
         Args:
-            html (bs): Beautiful Soup object containing the HTML content.
+            html (bs): Beautiful Soup object containing the HTML content of the course's subcategories.
         """
         super().__init__()
         links = self.get_links(html)
@@ -40,16 +41,16 @@ class CatCount(dict):
     
     def get_links(self, html: bs):
         """
-        Extract all links from the HTML content.
+        Internal method that extracts all links from the HTML content.
 
         Args:
-            html (bs): Beautiful Soup object containing the HTML content.
+            html (bs): Beautiful Soup object containing the HTML content of the course's subcategories.
 
         Returns:
-            [bs.Tag]: An array of Beautiful Soup Tag objects.
+            An array of links, one per subcategory.
         """
-        table = html.find_all("td", attrs={"width": "100%"})[1].find_all("a")
-        return table
+        links = html.find_all("td", attrs={"width": "100%"})[1].find_all("a")
+        return links
 
     def get_catID(self, category: str) -> str:
         """

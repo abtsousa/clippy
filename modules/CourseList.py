@@ -12,11 +12,7 @@ class CourseList(list):
     Represents a list of academic courses with associated links.
 
     Args:
-        html (bs): Beautiful Soup object containing the HTML content.
-
-    Usage:
-        html_content = ...
-        courses_list = CourseList(html_content)
+        html (bs): Beautiful Soup object containing the HTML of a Courses page in CLIP.
     """
 
     def __init__(self, html: bs):
@@ -24,7 +20,7 @@ class CourseList(list):
         Initialize a CourseList instance based on HTML content.
 
         Args:
-            html (bs): Beautiful Soup object containing the HTML content.
+            html (bs): Beautiful Soup object containing the HTML of a Courses page in CLIP.
         """
         super().__init__()
         links = self.get_links(html)
@@ -45,7 +41,7 @@ class CourseList(list):
         Extract links from the HTML content.
 
         Args:
-            html (bs): Beautiful Soup object containing the HTML content.
+            html (bs): Beautiful Soup object containing the HTML of a Courses page in CLIP.
 
         Returns:
             An array of links.
@@ -55,5 +51,6 @@ class CourseList(list):
             table = html.find_all("td", attrs={"width": "100%"})[1].find_all("a", {"href": re.compile(r"&unidade=(\d+)")}) # TODO possivel IndexError out of range
             return table
         except IndexError:
-            log.error(f"Falha crítica: o servidor devolveu conteúdo HTML inválido. Espere uns segundos e tente novamente.\nO servidor devolveu o seguinte conteúdo HTML:\n {html}")
+            log.error(f"Falha crítica: o servidor devolveu conteúdo HTML inválido. Espere uns segundos e tente novamente.\n"
+                      f"O servidor devolveu o seguinte conteúdo HTML:\n {html}")
             exit()

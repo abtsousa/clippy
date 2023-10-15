@@ -29,7 +29,12 @@ def load_username_alt():
 
 # macOS workaround
 def save_username_alt(username):
-    """Save a basic user config."""
+    """
+    Save a basic user config.
+    
+    Args:
+        username(str): the user's username.
+    """
     config = configparser.ConfigParser()
     
     config['Credenciais'] = {"username": username}
@@ -41,6 +46,7 @@ def delete_password(username):
     keyring.delete_password(service_name, username)
 
 def load_username():
+    """Loads a saved username, if found."""
     if reset_flag:
         return None
     else:
@@ -55,12 +61,19 @@ def load_username():
             return username
 
 def load_password(username=load_username()):
+    """Loads a saved password, if found."""
     if not reset_flag:
         return keyring.get_password(service_name,username)
     else:
         return None
 
 def save_credentials(username, password):
+    """Saves the provided credentials, after asking for the user's permission.
+    
+    Args:
+        username (str): The user's username.
+        password (str): The user's password.
+    """
     if inquirer.confirm(
         message="Guardar credenciais em sistema para a próxima vez?",
         default=True,
