@@ -13,5 +13,5 @@ class EmptyHTMLException(Exception):
                  "existe(m) ou o servidor pode estar com problemas técnicos. Verifique se os "
                  "parâmetros introduzidos estão correctos e tente novamente mais tarde."):
         reset_login()
-        log.error(message):while
+        log.error(message)
         raise ExitHandler(0)
