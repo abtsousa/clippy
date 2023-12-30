@@ -442,7 +442,7 @@ def check_for_updates():
     latest_version = get_latest_release()
     log.debug(f"Latest version: {latest_version}")
     log.debug(f"Current version: {__version__}")
-    if latest_version != __version__:
+    if latest_version is not None and latest_version != __version__:
         update_text = f"[bold underline red]!!!Actualização disponível!!![/bold underline red] ({__version__} → {latest_version})\nTransfere a versão mais recente em: https://github.com/abtsousa/clippy/releases/latest"
         print("*" * 45)
         print(update_text)
