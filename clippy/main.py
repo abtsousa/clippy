@@ -62,7 +62,7 @@ __maintainer__ = "Afonso Bras Sousa"
 __email__ = "ab.sousa@campus.fct.unl.pt"
 __version__ = "1.0.0"
 
-app = typer.Typer(add_completion=False)
+app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
 def version_callback(value: bool):
     if value:
