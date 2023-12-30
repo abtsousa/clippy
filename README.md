@@ -131,7 +131,7 @@ This program is provided "as is" and is strictly intended for private use, limit
 
 ## License and Copyright
 
-Clippy was made in 2023 by Afonso Brás Sousa, a first-year computer science and engineering student @ FCT-NOVA.
+Clippy was made in 2023 by Afonso Brás Sousa, a (then) first-year computer science and engineering student @ FCT-NOVA.
 
 Licensed under the GPL v3.
 
