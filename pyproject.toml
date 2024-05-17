@@ -24,7 +24,7 @@ inquirerpy = "^0.3.4"
 requests = "^2.31.0"
 appdirs = "^1.4.4"
 bs4 = "^0.0.1"
-tqdm = "^4.66.1"
+tqdm = "^4.66.3"
 keyring = "^24.2.0"
 
 [build-system]
