@@ -205,7 +205,7 @@ wheels = [
 [[package]]
 name = "clippy"
 version = "1.0.1"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "appdirs" },
     { name = "bs4" },
