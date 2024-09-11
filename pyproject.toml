@@ -5,6 +5,7 @@ requires-python = ">=3.8"
 description = "A simple web scraper and downloader for FCT-NOVA's internal e-learning platform, CLIP."
 readme = "README.md"
 authors = [{name = "abtsousa", email = "11749310+abtsousa@users.noreply.github.com"}]
+license = "gpl-3.0-only"
 dependencies = [
     "appdirs>=1.4.4",
     "bs4>=0.0.1",
