@@ -4,6 +4,7 @@ import logging as log
 import configparser
 from pathlib import Path
 import clippy.config as cfg
+import os
 
 service_name="clippy"
 reset_flag=False
@@ -43,6 +44,7 @@ def save_username_alt(username):
     with open(cfg.cfgpath, 'w+') as configfile:
         config.write(configfile)
         print(f"Ficheiro de configuração guardado em: '{cfg.cfgpath}'")
+
 def delete_password(username):
     keyring.delete_password(service_name, username)
 
@@ -50,28 +52,44 @@ def load_username():
     """Loads a saved username, if found."""
     if reset_flag:
         return None
-    else:
-        cred = keyring.get_credential(service_name, None) # does not work in all keychain managers e.g. macOS
-        if cred is not None:
-            log.debug(f"Found saved username: {cred.username}")
-            return cred.username
-        else:
-            username = load_username_alt() # macOS workaround
-            if username is None:
-                log.debug("No saved username found.")
-            return username
+    
+    # Environment variable
+    username = os.getenv('CLIP_USERNAME')
+    if username:
+        log.debug(f"Found saved username: {username}")
+        return username
+    
+    # Keyring
+    cred = keyring.get_credential(service_name, None)  # does not work in all keychain managers e.g. macOS
+    if cred is not None:
+        log.debug(f"Found saved username: {cred.username}")
+        return cred.username
+
+    username = load_username_alt()  # macOS workaround
+    if username is None:
+        log.debug("No saved username found.")
+    return username
+
 
 def load_password(username=load_username()):
     """Loads a saved password, if found."""
     global keyring_disable
-    if not reset_flag:
-        try:
-            return keyring.get_password(service_name,username)
-        except (keyring.errors.NoKeyringError, keyring.errors.KeyringError): #keyring not found, not installed or error loading
-            log.info("Não foi encontrado nenhum serviço para guardar credenciais no sistema.")
-            keyring_disable = True
-            return None
-    else:
+
+    if reset_flag:
+        return None
+
+    # Environment variable
+    password = os.getenv('CLIP_PASSWORD')
+    if password:
+        log.debug("Found saved password in environment variable.")
+        return password
+    
+    # Keyring
+    try:
+        return keyring.get_password(service_name, username)
+    except (keyring.errors.NoKeyringError, keyring.errors.KeyringError):  # keyring not found, not installed or error loading
+        log.info("Não foi encontrado nenhum serviço para guardar credenciais no sistema.")
+        keyring_disable = True
         return None
 
 def save_credentials(username, password):
