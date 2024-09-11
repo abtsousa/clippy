@@ -6,7 +6,7 @@
 
 ## A simple file downloader for FCT-NOVA's <span color="#315259">CLIP</span>, in <span color="#315259">Py</span>thon (BETA)
 
-<img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24"> <img src="/etc/Android-256.png" width="24">
+<img src="/etc/Apple-256.png" width="24" alt="MacOS"> <img src="/etc/Linux-256.png" width="24" alt="Linux"> <img src="/etc/Windows-8-256.png" width="24" alt="Windows"> <img src="/etc/Android-256.png" width="24" alt="Android"> <img src="/etc/Docker-256.png" width="24" alt="Docker">
 
 by Afonso Brás Sousa
 
@@ -15,7 +15,7 @@ by Afonso Brás Sousa
 
 ### 🇵🇹 [Portuguese version here / Clica aqui para ler a descrição em Português](README-pt.md) 🇵🇹
 
-### Now with Android support! (experimental)
+### Now with Docker support!
 
 Clippy is a simple web scraper and downloader for NOVA School of Science and Technology's internal e-learning platform, CLIP.
 
@@ -44,7 +44,7 @@ https://github.com/abtsousa/clippy/assets/11749310/07c1b63b-bc40-4cf3-b3cb-ce80c
 
 ## Screenshots
 
-<div style="text-align: center;"><img src="/etc/screenshots/mac2.png" width="100%" alt="mac screenshot"></div> <div style="display:inline-block"><img src="/etc/screenshots/linux.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows.png" width="33%" alt="windows standalone exe screenshot"> <img src="/etc/screenshots/linux2.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/termux.png" width="33%" alt="android screenshot"> <img src="/etc/screenshots/mac.png" width="33%" alt="mac fullscreen screenshot"> <img src="/etc/screenshots/linux2.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows4.png" width="33%" alt="windows standalone exe screenshot"></div>
+<div style="text-align: center;"><img src="/etc/screenshots/mac2.png" width="100%" alt="mac screenshot"></div> <div style="display:inline-block"><img src="/etc/screenshots/linux.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows.png" width="33%" alt="windows standalone exe screenshot"> <img src="/etc/screenshots/termux.png" width="33%" alt="android screenshot"> <img src="/etc/screenshots/mac.png" width="33%" alt="mac fullscreen screenshot"> <img src="/etc/screenshots/linux2.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows4.png" width="33%" alt="windows standalone exe screenshot"></div>
 
 ## Install
 
@@ -54,9 +54,28 @@ https://github.com/abtsousa/clippy/assets/11749310/07c1b63b-bc40-4cf3-b3cb-ce80c
 
 [Termux](https://termux.dev/en/) or a similar terminal emulator needs to be installed on Android devices. (experimental)
 
-**Recommended (All platforms):** Build and install with pip:
+**Recommended (All platforms):** Build and install with [uv](https://github.com/astral-sh/uv):
 
-```pip install https://github.com/abtsousa/clippy/archive/stable.zip```
+```
+cd <folder-where-clippy-is> && \
+uv sync --frozen && \
+uv tool install .
+```
+
+This will install Clippy in your user's PATH in a contained environment.
+
+**Docker (All platforms):** Build and run with Docker:
+```
+docker build --build-arg CLIP_USERNAME=<username> -t clippy . && \
+docker run --name clippy-container -it clippy
+```
+
+After it is created you can start the container with:
+
+```
+docker start clippy-container && \
+docker exec -it clippy-container clippy ...`
+```
 
 **Alternative (Windows only):** Download clippy.exe from the [latest release page](https://github.com/abtsousa/clippy/releases/latest) and move it to where you want Clippy to save your files, then run it.
 
@@ -131,7 +150,7 @@ This program is provided "as is" and is strictly intended for private use, limit
 
 ## License and Copyright
 
-Clippy was made in 2023 by Afonso Brás Sousa, a first-year computer science and engineering student @ FCT-NOVA.
+Clippy was made in 2023 by Afonso Brás Sousa, a (then) first-year computer science and engineering student @ FCT-NOVA.
 
 Licensed under the GPL v3.
 

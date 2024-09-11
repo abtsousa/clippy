@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['clippy\\main.py'],
+    ['src\\clippy\\main.py'],
     pathex=[],
     binaries=[],
     datas=[],
