@@ -9,6 +9,10 @@ WORKDIR /app
 
 # uv will install the project into .local/bin so we add it to the PATH
 ENV PATH="$PATH:/root/.local/bin"
+ARG CLIP_USERNAME=''
+ARG CLIP_PASSWORD=''
+ENV CLIP_USERNAME ${CLIP_USERNAME}
+ENV CLIP_PASSWORD ${CLIP_PASSWORD}
 
 # Sync the project into a new environment using the frozen lockfile
 RUN uv sync --frozen && \

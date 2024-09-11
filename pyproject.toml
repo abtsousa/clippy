@@ -22,7 +22,3 @@ clippy = "clippy.main:app"
 [tool.uv]
 package = true
 dev-dependencies = [ ]
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
