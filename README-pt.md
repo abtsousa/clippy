@@ -61,7 +61,7 @@ uv sync --frozen && \
 uv tool install .
 ```
 
-Isso instalará o Clippy no PATH do seu usuário em um ambiente contido.
+Isso instalará o Clippy no PATH do utilizador num ambiente virtual contido.
 
 **Docker (Todas as plataformas):** Construir e executar com o Docker:
 ```
