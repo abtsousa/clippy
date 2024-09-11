@@ -10,9 +10,7 @@ WORKDIR /app
 # uv will install the project into .local/bin so we add it to the PATH
 ENV PATH="$PATH:/root/.local/bin"
 ARG CLIP_USERNAME=''
-ARG CLIP_PASSWORD=''
-ENV CLIP_USERNAME ${CLIP_USERNAME}
-ENV CLIP_PASSWORD ${CLIP_PASSWORD}
+ENV CLIP_USERNAME=${CLIP_USERNAME}
 
 # Sync the project into a new environment using the frozen lockfile
 RUN uv sync --frozen && \
@@ -20,4 +18,4 @@ uv tool install .
 
 # Docker will launch clippy by default. You can override this by
 # specifying a different command to run in the docker run <image> <command>.
-CMD ["clippy", "--path", "/CLIP/"]
+CMD ["clippy"]

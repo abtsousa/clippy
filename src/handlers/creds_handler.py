@@ -44,6 +44,7 @@ def save_username_alt(username):
     with open(cfg.cfgpath, 'w+') as configfile:
         config.write(configfile)
         print(f"Ficheiro de configuração guardado em: '{cfg.cfgpath}'")
+
 def delete_password(username):
     keyring.delete_password(service_name, username)
 
@@ -51,12 +52,14 @@ def load_username():
     """Loads a saved username, if found."""
     if reset_flag:
         return None
-
+    
+    # Environment variable
     username = os.getenv('CLIP_USERNAME')
     if username:
         log.debug(f"Found saved username: {username}")
         return username
-
+    
+    # Keyring
     cred = keyring.get_credential(service_name, None)  # does not work in all keychain managers e.g. macOS
     if cred is not None:
         log.debug(f"Found saved username: {cred.username}")
@@ -75,11 +78,13 @@ def load_password(username=load_username()):
     if reset_flag:
         return None
 
+    # Environment variable
     password = os.getenv('CLIP_PASSWORD')
     if password:
         log.debug("Found saved password in environment variable.")
         return password
-
+    
+    # Keyring
     try:
         return keyring.get_password(service_name, username)
     except (keyring.errors.NoKeyringError, keyring.errors.KeyringError):  # keyring not found, not installed or error loading
