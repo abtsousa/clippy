@@ -1,5 +1,0 @@
-- Finish dockerizing, test app
-- Update version, edit README with uv tool settings
-- CLIP_USER e CLIP_PASS env variables
-- UV build distributions available?
-- Upload to PyPi?
