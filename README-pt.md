@@ -6,7 +6,7 @@
 
 ## Um gestor de downloads para a plataforma CLIP da FCT-NOVA (BETA)
 
-<img src="/etc/Apple-256.png" width="24"> <img src="/etc/Linux-256.png" width="24"> <img src="/etc/Windows-8-256.png" width="24"> <img src="/etc/Android-256.png" width="24">
+<img src="/etc/Apple-256.png" width="24" alt="MacOS"> <img src="/etc/Linux-256.png" width="24" alt="Linux"> <img src="/etc/Windows-8-256.png" width="24" alt="Windows"> <img src="/etc/Android-256.png" width="24" alt="Android"> <img src="/etc/Docker-256.png" width="24" alt="Docker">
 
 por Afonso Brás Sousa
 
@@ -16,7 +16,7 @@ por Afonso Brás Sousa
 
 ### 🇬🇧 [English version here / Clica aqui para ler a descrição em Inglês](README.md) 🇬🇧
 
-### Agora com suporte (experimental) para Android!
+### Agora com suporte para Docker!
 
 O Clippy é um simples web scraper e gestor de downloads para a plataforma interna de e-learning da FCT-NOVA, o CLIP.
 
@@ -53,9 +53,28 @@ https://github.com/abtsousa/clippy/assets/11749310/07c1b63b-bc40-4cf3-b3cb-ce80c
 
 É necessário o [Termux](https://termux.dev/en/) ou outro emulador de terminal nos dispositivos Android. (experimental)
 
-**Recomendado (Windows/Mac/Linux):** Compila e instala de raíz com o comando pip:
+**Recomendado (Todas as plataformas):** Compilar e instalar com [uv](https://github.com/astral-sh/uv):
 
-```pip install https://github.com/abtsousa/clippy/archive/stable.zip```
+```
+cd <pasta-do-clippy> && \
+uv sync --frozen && \
+uv tool install .
+```
+
+Isso instalará o Clippy no PATH do seu usuário em um ambiente contido.
+
+**Docker (Todas as plataformas):** Construir e executar com o Docker:
+```
+docker build --build-arg CLIP_USERNAME=<username> -t clippy . && \
+docker run --name clippy-container -it clippy
+```
+
+Depois de criado, inicia o contentor com:
+
+```
+docker start clippy-container && \
+docker exec -it clippy-container clippy ...``
+```
 
 **Alternativa (Windows só):** Transfere o ficheiro clippy.exe da [página da versão mais recente](https://github.com/abtsousa/clippy/releases/latest) e cola-o na pasta onde queres que o Clippy guarde os ficheiros, depois corre o programa.
 
