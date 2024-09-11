@@ -19,5 +19,4 @@ dependencies = [
 clippy = "clippy.main:app"
 
 [tool.uv]
-tools = { clippy = {entrypoint = "clippy.main:app"} }
-dev-dependencies = []
+dev-dependencies = [ ]
