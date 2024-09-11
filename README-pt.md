@@ -43,7 +43,7 @@ https://github.com/abtsousa/clippy/assets/11749310/07c1b63b-bc40-4cf3-b3cb-ce80c
 
 ## Screenshots
 
-<div style="text-align: center;"><img src="/etc/screenshots/mac2.png" width="100%" alt="mac screenshot"></div> <div style="display:inline-block"><img src="/etc/screenshots/linux.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows.png" width="33%" alt="windows standalone exe screenshot"> <img src="/etc/screenshots/linux2.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/termux.png" width="33%" alt="android screenshot"> <img src="/etc/screenshots/mac.png" width="33%" alt="mac fullscreen screenshot"> <img src="/etc/screenshots/linux2.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows4.png" width="33%" alt="windows standalone exe screenshot"></div>
+<div style="text-align: center;"><img src="/etc/screenshots/mac2.png" width="100%" alt="mac screenshot"></div> <div style="display:inline-block"><img src="/etc/screenshots/linux.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows.png" width="33%" alt="windows standalone exe screenshot"> <img src="/etc/screenshots/termux.png" width="33%" alt="android screenshot"> <img src="/etc/screenshots/mac.png" width="33%" alt="mac fullscreen screenshot"> <img src="/etc/screenshots/linux2.png" width="33%" alt="linux screenshot"> <img src="/etc/screenshots/windows4.png" width="33%" alt="windows standalone exe screenshot"></div>
 
 ## Como instalar
 
