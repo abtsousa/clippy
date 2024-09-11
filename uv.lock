@@ -247,7 +247,7 @@ requires-dist = [
     { name = "keyring", specifier = ">=24.2.0" },
     { name = "requests", specifier = ">=2.32.0" },
     { name = "tqdm", specifier = ">=4.66.3" },
-    { name = "typer", extras = ["all"], specifier = ">=0.9.0" },
+    { name = "typer", specifier = ">=0.9.0" },
 ]
 
 [[package]]
